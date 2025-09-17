@@ -19,6 +19,11 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 
+from  app_run import views
+
+
+
 urlpatterns = [
+    path('api/company_details/', views.detail_company, name='company-detail'),
     path('admin/', admin.site.urls),
 ]
