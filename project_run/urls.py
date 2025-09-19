@@ -23,7 +23,7 @@ from rest_framework.routers import SimpleRouter
 from  app_run import views
 
 router = SimpleRouter()
-router.register(r'api/runs/', views.RunViewSet)
+router.register(r'api/runs', views.RunViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
