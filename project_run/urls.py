@@ -18,12 +18,16 @@ from django.contrib import admin
 from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
+from rest_framework.routers import SimpleRouter
 
 from  app_run import views
 
-
+router = SimpleRouter()
+router.register(r'api/runs/', views.RunViewSet)
 
 urlpatterns = [
-    path('api/company_details/', views.detail_company, name='company-detail'),
     path('admin/', admin.site.urls),
+    path('api/company_details/', views.detail_company, name='company-detail'),
 ]
+
+urlpatterns += router.urls
