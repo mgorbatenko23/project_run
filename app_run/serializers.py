@@ -5,4 +5,4 @@ from rest_framework import serializers
 class RunSerializer(serializers.ModelSerializer):
     class Meta:
         model = Run
-        fields = ['id', 'comment', 'created_at']
+        fields = '__all__'
