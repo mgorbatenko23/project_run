@@ -22,13 +22,13 @@ from rest_framework.routers import DefaultRouter
 
 from  app_run import views
 
+
 router = DefaultRouter()
 router.register(r'api/runs', views.RunViewSet)
+router.register(r'api/users', views.UserViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/company_details/', views.detail_company, name='company-detail'),
     path('', include(router.urls))
 ]
-
-# urlpatterns += router.urls
