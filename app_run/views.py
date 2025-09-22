@@ -4,8 +4,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import ParseError
+from rest_framework import mixins
 
 from app_run.models import Run
 from app_run.serializers import RunSerializer, UserSerializer
@@ -39,10 +40,14 @@ class UserViewSet(ReadOnlyModelViewSet):
             return queryset
 
 
-class RunViewStart(RetrieveUpdateAPIView):
+class RunViewStart(mixins.UpdateModelMixin,
+                   GenericAPIView):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
 
+    def post(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+    
     def get_object(self):
         obj = super().get_object()
         if obj.status == 'in_progress':
@@ -56,9 +61,13 @@ class RunViewStart(RetrieveUpdateAPIView):
         return serializer.save(status='in_progress')
 
 
-class RunViewStop(RetrieveUpdateAPIView):
+class RunViewStop(mixins.UpdateModelMixin,
+                  GenericAPIView):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
+    
+    def post(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
 
     def get_object(self):
         obj = super().get_object()
