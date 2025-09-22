@@ -2,8 +2,10 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework import filters
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.exceptions import ParseError
 
 from app_run.models import Run
 from app_run.serializers import RunSerializer, UserSerializer
@@ -35,3 +37,34 @@ class UserViewSet(ReadOnlyModelViewSet):
             return queryset.filter(is_staff=False)
         else:
             return queryset
+
+
+class RunViewStart(RetrieveUpdateAPIView):
+    queryset = Run.objects.all()
+    serializer_class = RunSerializer
+
+    def get_object(self):
+        obj = super().get_object()
+        if obj.status == 'in_progress':
+            raise ParseError('The race has already begun')
+        elif obj.status == 'finished':
+            raise ParseError('The race is already over')
+        else:
+            return obj
+
+    def perform_update(self, serializer):
+        return serializer.save(status='in_progress')
+
+
+class RunViewStop(RetrieveUpdateAPIView):
+    queryset = Run.objects.all()
+    serializer_class = RunSerializer
+
+    def get_object(self):
+        obj = super().get_object()
+        if obj.status == 'init':
+            raise ParseError('The race has not started yet')
+        return obj
+
+    def perform_update(self, serializer):
+        return serializer.save(status='finished')

@@ -3,10 +3,17 @@ from django.contrib.auth.models import User
 
 
 class Run(models.Model):
+    STATUS_CHOICES = [
+        ('init', 'Init'),
+        ('in_progress', 'In_progress'),
+        ('finished', 'Finished'),
+    ]
+
     athlete = models.ForeignKey(User,
                                 on_delete=models.CASCADE,
                                 related_name='athletes')
     comment = models.TextField()
+    status = models.CharField(choices=STATUS_CHOICES, default='init')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
