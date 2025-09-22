@@ -73,6 +73,8 @@ class RunViewStop(mixins.UpdateModelMixin,
         obj = super().get_object()
         if obj.status == 'init':
             raise ParseError('The race has not started yet')
+        if obj.status == 'finished':
+            raise ParseError('The race is already over')
         return obj
 
     def perform_update(self, serializer):
