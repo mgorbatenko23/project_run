@@ -90,3 +90,71 @@ class UserApiTestCase(APITestCase):
         expected_user_id_list.pop(response.data[0].pop('id'))
         expected_user_id_list.pop(response.data[1].pop('id'))
         self.assertEqual(0, len(expected_user_id_list))
+
+
+class RunStartApiTestCase(APITestCase):
+    def setUp(self):
+        user = User.objects.create(username='user')
+        self.run_status_init = Run.objects.create(comment='comment',
+                                             athlete=user)
+        self.run_status_in_progress = Run.objects.create(comment='comment',
+                                                         athlete=user,
+                                                         status='in_progress')
+        self.run_status_finished = Run.objects.create(comment='comment',
+                                                      athlete=user,
+                                                      status='finished')
+
+    def test_status_init_start(self):
+        url = reverse('run-start', kwargs={'pk': self.run_status_init.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.run_status_init.refresh_from_db()
+        self.assertEqual('in_progress', self.run_status_init.status)
+
+    def test_status_in_progress_start(self):
+        url = reverse('run-start', kwargs={'pk': self.run_status_in_progress.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.run_status_in_progress.refresh_from_db()
+        self.assertEqual('in_progress', self.run_status_in_progress.status)
+
+    def test_status_in_finished_start(self):
+        url = reverse('run-start', kwargs={'pk': self.run_status_finished.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.run_status_finished.refresh_from_db()
+        self.assertEqual('finished', self.run_status_finished.status)
+
+
+class RunStopApiTestCase(APITestCase):
+    def setUp(self):
+        user = User.objects.create(username='user')
+        self.run_status_init = Run.objects.create(comment='comment',
+                                                  athlete=user)
+        self.run_status_in_progress = Run.objects.create(comment='comment',
+                                                         athlete=user,
+                                                         status='in_progress')
+        self.run_status_finished = Run.objects.create(comment='comment',
+                                                      athlete=user,
+                                                      status='finished')
+
+    def test_status_init_start(self):
+        url = reverse('run-stop', kwargs={'pk': self.run_status_init.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.run_status_init.refresh_from_db()
+        self.assertEqual('init', self.run_status_init.status)
+
+    def test_status_in_progress_start(self):
+        url = reverse('run-stop', kwargs={'pk': self.run_status_in_progress.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.run_status_in_progress.refresh_from_db()
+        self.assertEqual('finished', self.run_status_in_progress.status)
+
+    def test_status_in_finished_start(self):
+        url = reverse('run-stop', kwargs={'pk': self.run_status_finished.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
+        self.run_status_finished.refresh_from_db()
+        self.assertEqual('finished', self.run_status_finished.status)
