@@ -32,11 +32,17 @@ class RunViewSet(ModelViewSet):
     ordering_fields = ['created_at']
 
 
+class Userpagination(PageNumberPagination):
+    page_size_query_param = 'size'
+
+
 class UserViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    filter_backends = [filters.SearchFilter]
+    pagination_class = Userpagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['first_name', 'last_name']
+    ordering_fields = ['date_joined']
 
     def get_queryset(self):
         queryset = self.queryset.filter(is_superuser=False).all()
