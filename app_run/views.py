@@ -39,7 +39,7 @@ class Userpagination(PageNumberPagination):
 
 class UserViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.prefetch_related('athletes')\
-                        .annotate(run_finished=Count('athletes__status',
+                        .annotate(runs_finished=Count('athletes__status',
                                                      filter=Q(athletes__status='finished')))    
     serializer_class = UserSerializer
     pagination_class = Userpagination
