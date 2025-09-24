@@ -8,8 +8,6 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import ParseError
 from rest_framework import mixins
 from django_filters.rest_framework import DjangoFilterBackend
-
-# TODO: использовать для задания 7
 from rest_framework.pagination import PageNumberPagination
 
 from app_run.models import Run
