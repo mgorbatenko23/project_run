@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.db.models import Count, Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
@@ -37,7 +38,9 @@ class Userpagination(PageNumberPagination):
 
 
 class UserViewSet(ReadOnlyModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.prefetch_related('athletes')\
+                        .annotate(run_finished=Count('athletes__status',
+                                                     filter=Q(athletes__status='finished')))    
     serializer_class = UserSerializer
     pagination_class = Userpagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]

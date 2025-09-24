@@ -20,10 +20,14 @@ class RunSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
+    run_finished = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name', 'type']
+        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name', 'type', 'run_finished']
 
     def get_type(self, obj):
         return 'coach' if obj.is_staff else 'athlete'
+
+    def get_run_finished(self, obj):
+        return obj.run_finished

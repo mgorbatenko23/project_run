@@ -47,7 +47,7 @@ class UserApiTestCase(APITestCase):
                                            is_superuser=True)
 
     def test_filter_type_is_coach(self):
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             url = reverse('user-list')
             query_params = {'type': 'coach'}
             response = self.client.get(url, query_params=query_params)
@@ -57,7 +57,7 @@ class UserApiTestCase(APITestCase):
                          response.data[0].get('id'))
 
     def test_filter_type_is_athlete(self):
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             url = reverse('user-list')
             query_params = {'type': 'athlete'}
             response = self.client.get(url, query_params=query_params)
@@ -67,7 +67,7 @@ class UserApiTestCase(APITestCase):
                          response.data[0].get('id'))
 
     def test_filter_type_is_wrong(self):
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             url = reverse('user-list')
             query_params = {'type': 'blablabla'}
             response = self.client.get(url, query_params=query_params)
@@ -80,7 +80,7 @@ class UserApiTestCase(APITestCase):
         self.assertEqual(0, len(expected_user_id_list))
 
     def test_without_filter(self):
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):
             url = reverse('user-list')
             response = self.client.get(url)
             self.assertEqual(status.HTTP_200_OK, response.status_code)
