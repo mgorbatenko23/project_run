@@ -7,6 +7,10 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import ParseError
 from rest_framework import mixins
+from django_filters.rest_framework import DjangoFilterBackend
+
+# TODO: использовать для задания 7
+from rest_framework.pagination import PageNumberPagination
 
 from app_run.models import Run
 from app_run.serializers import RunSerializer, UserSerializer
@@ -17,9 +21,17 @@ def detail_company(request):
     return Response(settings.ABOUT_COMPANY)
 
 
+class RunPagination(PageNumberPagination):
+    page_size_query_param = 'size'
+
+
 class RunViewSet(ModelViewSet):
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
+    pagination_class = RunPagination
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status', 'athlete']
+    ordering_fields = ['created_at']
 
 
 class UserViewSet(ReadOnlyModelViewSet):
