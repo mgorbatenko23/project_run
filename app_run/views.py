@@ -119,7 +119,11 @@ class AthleteInfoView(mixins.RetrieveModelMixin,
         response.status_code = status.HTTP_201_CREATED
         return response
 
+    def perform_update(self, serializer):
+        return serializer.save(user_id=self.user)
+        
+
     def get_object(self):
-        user = get_object_or_404(User.objects.all(), id=self.kwargs['id'])
-        athlete_info, _ = AthleteInfo.objects.get_or_create(user_id=user)
+        self.user = get_object_or_404(User.objects.all(), id=self.kwargs['id'])
+        athlete_info, _ = AthleteInfo.objects.get_or_create(user_id=self.user)
         return athlete_info
