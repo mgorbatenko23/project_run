@@ -121,5 +121,5 @@ class AthleteInfoView(mixins.RetrieveModelMixin,
 
     def get_object(self):
         user = get_object_or_404(User.objects.all(), id=self.kwargs['id'])
-        athlete_info, _ = AthleteInfo.objects.get_or_create(athlete=user)
+        athlete_info, _ = AthleteInfo.objects.get_or_create(user_id=user)
         return athlete_info

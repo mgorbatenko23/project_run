@@ -21,7 +21,7 @@ class Run(models.Model):
 
 
 class AthleteInfo(models.Model):
-    athlete = models.OneToOneField(User,
+    user_id = models.OneToOneField(User,
                                    on_delete=models.CASCADE,
                                    related_name='athlete_info',
                                    primary_key=True)                                   
