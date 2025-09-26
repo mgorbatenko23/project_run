@@ -18,3 +18,12 @@ class Run(models.Model):
 
     def __str__(self):
         return f'{self.athlete.id} -- {self.comment} -- {self.created_at}'
+
+
+class AthleteInfo(models.Model):
+    athlete = models.OneToOneField(User,
+                                   on_delete=models.CASCADE,
+                                   related_name='athlete_info',
+                                   primary_key=True)                                   
+    goals = models.TextField(default='', blank=True)
+    weight = models.PositiveSmallIntegerField(blank=True, null=True)

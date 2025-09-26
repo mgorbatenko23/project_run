@@ -26,6 +26,7 @@ from  app_run import views
 router = DefaultRouter()
 router.register(r'api/runs', views.RunViewSet)
 router.register(r'api/users', views.UserViewSet)
+# router.register(r'api/athlete_info/<id:int>', views.AthleteInfoView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -33,4 +34,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api/runs/<int:pk>/start/', views.RunViewStart.as_view(), name='run-start'),
     path('api/runs/<int:pk>/stop/', views.RunViewStop.as_view(), name='run-stop'),
+    path('api/athlete_info/<int:id>/', views.AthleteInfoView.as_view(), name='athlete_info-detail')
 ]

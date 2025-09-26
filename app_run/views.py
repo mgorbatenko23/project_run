@@ -1,18 +1,20 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.exceptions import ParseError
 from rest_framework import mixins
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
+from rest_framework import status
 
-from app_run.models import Run
-from app_run.serializers import RunSerializer, UserSerializer
+from app_run.models import Run, AthleteInfo
+from app_run.serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
 
 
 @api_view()
@@ -59,8 +61,7 @@ class UserViewSet(ReadOnlyModelViewSet):
             return queryset
 
 
-class RunViewStart(mixins.UpdateModelMixin,
-                   GenericAPIView):
+class RunViewStart(mixins.UpdateModelMixin, GenericAPIView):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
 
@@ -80,8 +81,7 @@ class RunViewStart(mixins.UpdateModelMixin,
         return serializer.save(status='in_progress')
 
 
-class RunViewStop(mixins.UpdateModelMixin,
-                  GenericAPIView):
+class RunViewStop(mixins.UpdateModelMixin, GenericAPIView):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
     
@@ -99,3 +99,27 @@ class RunViewStop(mixins.UpdateModelMixin,
 
     def perform_update(self, serializer):
         return serializer.save(status='finished')
+
+
+class AthleteInfoView(mixins.RetrieveModelMixin,
+                      mixins.UpdateModelMixin,
+                      GenericAPIView):
+    queryset = AthleteInfo.objects.all()
+    serializer_class = AthleteInfoSerializer
+    lookup_field = 'id'
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+    
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)    
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        response.status_code = status.HTTP_201_CREATED
+        return response
+
+    def get_object(self):
+        user = get_object_or_404(User.objects.all(), id=self.kwargs['id'])
+        athlete_info, _ = AthleteInfo.objects.get_or_create(athlete=user)
+        return athlete_info
