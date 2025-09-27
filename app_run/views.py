@@ -6,15 +6,20 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.exceptions import ParseError
 from rest_framework import mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 
-from app_run.models import Run, AthleteInfo
-from app_run.serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
+from app_run.models import Run, AthleteInfo, Challenge
+from app_run.serializers import (
+    RunSerializer,
+    UserSerializer,
+    AthleteInfoSerializer,
+    ChallengeSerializer,
+)    
 
 
 @api_view()
@@ -98,7 +103,13 @@ class RunViewStop(mixins.UpdateModelMixin, GenericAPIView):
             return obj
 
     def perform_update(self, serializer):
-        return serializer.save(status='finished')
+        run_finished = serializer.save(status='finished')
+        count_finished_run = self.get_queryset().filter(athlete=run_finished.athlete,
+                                                        status='finished').count()
+        if count_finished_run == 10:
+            Challenge.objects.create(athlete=run_finished.athlete,
+                                     full_name='Сделай 10 забегов')
+        return run_finished
 
 
 class AthleteInfoView(mixins.RetrieveModelMixin,
@@ -129,3 +140,10 @@ class AthleteInfoView(mixins.RetrieveModelMixin,
             return self.user.athlete_info
         else:
             return AthleteInfo.objects.create(athlete=self.user)
+        
+
+class ChallengeView(ListAPIView):
+    queryset = Challenge.objects.all()
+    serializer_class = ChallengeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['athlete']
