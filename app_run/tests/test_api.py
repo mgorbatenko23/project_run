@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from app_run.models import Run, AthleteInfo
+from app_run.models import Run, AthleteInfo, Challenge
 
 
 class CompanyDetailApiTestCase(APITestCase):
@@ -212,3 +212,25 @@ class AthleteInfoApiTestCase(APITestCase):
         self.assertEqual({'goals': 'цели нет, есть только путь',
                           'weight': 80,
                           'user_id': self.user_2.pk}, response.data)
+
+
+class ChallengeApiTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+
+        for i in range(9):
+            Run.objects.create(athlete=self.user,
+                               comment=f'comment {i}',
+                               status='finished')
+        self.run = Run.objects.create(athlete=self.user,
+                               comment='comment 10',
+                               status='in_progress')
+    
+    def test_create_challenge(self):
+        url = reverse('run-stop', kwargs={'pk': self.run.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(1, Challenge.objects.count())
+        challenge = Challenge.objects.first()
+        self.assertEqual(self.user, challenge.athlete)
+        self.assertEqual('Сделай 10 Забегов!', challenge.full_name)
