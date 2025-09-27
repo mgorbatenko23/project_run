@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
+from rest_framework import serializers
 
-from app_run.serializers import UserSerializer
+from app_run.serializers import UserSerializer, AthleteInfoSerializer
 
 
 class UserSerializeTestCase(TestCase):
@@ -19,3 +20,15 @@ class UserSerializeTestCase(TestCase):
         serializer = UserSerializer()
         self.assertEqual('athlete', serializer.get_type(self.athlete))
 
+
+class AthleteInfoSerializerTestCase(TestCase):
+    def test_validate_weight(self):
+        serializer = AthleteInfoSerializer()
+        self.assertEqual(23, serializer.validate_weight(23))
+    
+    def test_validate_weight_error(self):
+        serializer = AthleteInfoSerializer()
+        self.assertRaises(serializers.ValidationError,
+                          serializer.validate_weight, 0)
+        self.assertRaises(serializers.ValidationError,
+                          serializer.validate_weight, 900)

@@ -4,8 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-
-from app_run.models import Run
+from app_run.models import Run, AthleteInfo
 
 
 class CompanyDetailApiTestCase(APITestCase):
@@ -158,3 +157,58 @@ class RunStopApiTestCase(APITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.run_status_finished.refresh_from_db()
         self.assertEqual('finished', self.run_status_finished.status)
+
+
+class AthleteInfoApiTestCase(APITestCase):
+    def setUp(self):
+        self.user_1 = User.objects.create(username='user 1')
+        self.user_2 = User.objects.create(username='user 2')
+        self.athlete_info = AthleteInfo.objects.create(athlete=self.user_2,
+                                                        goals='цели нет, есть только путь',
+                                                        weight=70)
+
+    def test_not_find_user(self):
+        url = reverse('athlete_info-detail', kwargs={'id': 23})
+        response = self.client.get(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+        response = self.client.put(url)
+        self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+
+    def test_create_athlete_info_method_get(self):
+        url = reverse('athlete_info-detail', kwargs={'id': self.user_1.id})
+        response = self.client.get(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(1, AthleteInfo.objects.filter(athlete=self.user_1.id).count())
+
+        athlete_info = AthleteInfo.objects.first()
+        self.assertEqual(athlete_info.pk, self.user_1.pk)
+        self.assertEqual(athlete_info.goals, '')
+        self.assertEqual(athlete_info.weight, None)
+
+    def test_create_athlete_info_method_put(self):
+        url = reverse('athlete_info-detail', kwargs={'id': self.user_1.id})
+        response = self.client.put(url)
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual(1, AthleteInfo.objects.filter(athlete=self.user_1.id).count())
+
+        athlete_info = AthleteInfo.objects.first()
+        self.assertEqual(athlete_info.pk, self.user_1.pk)
+        self.assertEqual(athlete_info.goals, '')
+        self.assertEqual(athlete_info.weight, None)
+
+    def test_get_athlete_info(self):
+        url = reverse('athlete_info-detail', kwargs={'id': self.user_2.id})
+        response = self.client.get(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual({'goals': 'цели нет, есть только путь',
+                          'weight': 70,
+                          'user_id': self.user_2.pk}, response.data)
+        
+    def test_update_athlete_info(self):
+        url = reverse('athlete_info-detail', kwargs={'id': self.user_2.id})
+        response = self.client.put(url, data={'weight': 80})
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.athlete_info.refresh_from_db()
+        self.assertEqual({'goals': 'цели нет, есть только путь',
+                          'weight': 80,
+                          'user_id': self.user_2.pk}, response.data)
