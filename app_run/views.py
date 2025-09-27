@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -10,9 +9,9 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import ParseError
 from rest_framework import mixins
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
 
 from app_run.models import Run, AthleteInfo
 from app_run.serializers import RunSerializer, UserSerializer, AthleteInfoSerializer
@@ -105,7 +104,7 @@ class RunViewStop(mixins.UpdateModelMixin, GenericAPIView):
 class AthleteInfoView(mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       GenericAPIView):
-    queryset = AthleteInfo.objects.all()
+    queryset = User.objects.select_related('athlete_info').all()
     serializer_class = AthleteInfoSerializer
     lookup_field = 'id'
 
@@ -124,6 +123,9 @@ class AthleteInfoView(mixins.RetrieveModelMixin,
         return serializer.save(athlete=self.user)
         
     def get_object(self):
-        self.user = get_object_or_404(User.objects.all(), id=self.kwargs['id'])
-        athlete_info, _ = self.get_queryset().get_or_create(athlete=self.user)
-        return athlete_info
+        qs_users = self.get_queryset()
+        self.user = get_object_or_404(qs_users, id=self.kwargs['id'])
+        if getattr(self.user, 'athlete_info', False):
+            return self.user.athlete_info
+        else:
+            return AthleteInfo.objects.create(athlete=self.user)
