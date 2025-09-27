@@ -108,7 +108,7 @@ class RunViewStop(mixins.UpdateModelMixin, GenericAPIView):
                                                         status='finished').count()
         if count_finished_run == 10:
             Challenge.objects.create(athlete=run_finished.athlete,
-                                     full_name='Сделай 10 забегов')
+                                     full_name='Сделай 10 Забегов!')
         return run_finished
 
 
