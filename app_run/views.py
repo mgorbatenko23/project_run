@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.exceptions import ParseError
 from rest_framework import mixins
 from django_filters.rest_framework import DjangoFilterBackend
@@ -120,10 +121,9 @@ class AthleteInfoView(mixins.RetrieveModelMixin,
         return response
 
     def perform_update(self, serializer):
-        return serializer.save(user_id=self.user)
+        return serializer.save(athlete=self.user)
         
-
     def get_object(self):
         self.user = get_object_or_404(User.objects.all(), id=self.kwargs['id'])
-        athlete_info, _ = AthleteInfo.objects.get_or_create(user_id=self.user)
+        athlete_info, _ = self.get_queryset().get_or_create(athlete=self.user)
         return athlete_info
