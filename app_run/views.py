@@ -13,12 +13,13 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 
-from app_run.models import Run, AthleteInfo, Challenge
+from app_run.models import Run, AthleteInfo, Challenge, Position
 from app_run.serializers import (
     RunSerializer,
     UserSerializer,
     AthleteInfoSerializer,
     ChallengeSerializer,
+    PositionSerializer,
 )    
 
 
@@ -147,3 +148,11 @@ class ChallengeView(generics.ListAPIView):
     serializer_class = ChallengeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['athlete']
+
+
+class PositionViewSet(viewsets.ModelViewSet):
+    queryset = Position.objects.select_related('run').all()
+    serializer_class = PositionSerializer
+    http_method_names = ['get', 'post', 'delete', 'head', 'options', 'trace']
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['run']

@@ -26,6 +26,7 @@ from  app_run import views
 router = DefaultRouter()
 router.register(r'api/runs', views.RunViewSet)
 router.register(r'api/users', views.UserViewSet)
+router.register(r'api/positions', views.PositionViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

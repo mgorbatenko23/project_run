@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from app_run.models import Run, AthleteInfo, Challenge
+from app_run.models import Run, AthleteInfo, Challenge, Position
 from rest_framework import serializers
 
 
@@ -53,3 +53,24 @@ class ChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Challenge
         fields = '__all__'
+
+
+class PositionSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = Position
+        fields = ['id', 'run', 'latitude', 'longitude'] # id--read_only, run--PK
+
+    def validate_run(self, run):
+        if run.status in ['init', 'finished']:
+            raise serializers.ValidationError('Run must be status in_progress')
+        return run
+        
+    def validate_latitude(self, value):
+        if -90 <= value <= 90:
+            return value
+        raise serializers.ValidationError('The latitude must be between -90 and 90')
+    
+    def validate_longitude(self, value):
+        if -180 <= value <= 180:
+            return value
+        raise serializers.ValidationError('Thw longitude must be between -180 and 180')
