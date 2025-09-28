@@ -5,10 +5,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.generics import GenericAPIView, ListAPIView
-from rest_framework.exceptions import ParseError
+from rest_framework import viewsets
+from rest_framework import generics
 from rest_framework import mixins
+from rest_framework.exceptions import ParseError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
@@ -31,7 +31,7 @@ class RunPagination(PageNumberPagination):
     page_size_query_param = 'size'
 
 
-class RunViewSet(ModelViewSet):
+class RunViewSet(viewsets.ModelViewSet):
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
     pagination_class = RunPagination
@@ -44,7 +44,7 @@ class Userpagination(PageNumberPagination):
     page_size_query_param = 'size'
 
 
-class UserViewSet(ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.prefetch_related('athletes')\
                         .annotate(runs_finished=Count('athletes__status',
                                                      filter=Q(athletes__status='finished')))    
@@ -66,7 +66,7 @@ class UserViewSet(ReadOnlyModelViewSet):
             return queryset
 
 
-class RunViewStart(mixins.UpdateModelMixin, GenericAPIView):
+class RunViewStart(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
 
@@ -86,7 +86,7 @@ class RunViewStart(mixins.UpdateModelMixin, GenericAPIView):
         return serializer.save(status='in_progress')
 
 
-class RunViewStop(mixins.UpdateModelMixin, GenericAPIView):
+class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
     queryset = Run.objects.all()
     serializer_class = RunSerializer
     
@@ -114,7 +114,7 @@ class RunViewStop(mixins.UpdateModelMixin, GenericAPIView):
 
 class AthleteInfoView(mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
-                      GenericAPIView):
+                      generics.GenericAPIView):
     queryset = User.objects.select_related('athlete_info').all()
     serializer_class = AthleteInfoSerializer
     lookup_field = 'id'
@@ -142,7 +142,7 @@ class AthleteInfoView(mixins.RetrieveModelMixin,
             return AthleteInfo.objects.create(athlete=self.user)
         
 
-class ChallengeView(ListAPIView):
+class ChallengeView(generics.ListAPIView):
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
     filter_backends = [DjangoFilterBackend]
