@@ -20,7 +20,8 @@ from app_run.serializers import (
     AthleteInfoSerializer,
     ChallengeSerializer,
     PositionSerializer,
-)    
+)
+from app_run import utils
 
 
 @api_view()
@@ -88,7 +89,7 @@ class RunViewStart(mixins.UpdateModelMixin, generics.GenericAPIView):
 
 
 class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
-    queryset = Run.objects.all()
+    queryset = Run.objects.select_related('athlete').prefetch_related('positions').all()
     serializer_class = RunSerializer
     
     def post(self, request, *args, **kwargs):
@@ -101,30 +102,25 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
         elif obj.status == 'finished':
             raise ParseError('The race is already over')
         else:
+            self.obj = obj
             return obj
 
     def perform_update(self, serializer):
-        run_finished = serializer.save(status='finished')
+        coordinates = [(obj.latitude, obj.longitude) for obj in self.obj.positions.all()]
+        run_finished = serializer.save(status='finished', distance=utils.get_distance_in_km(coordinates))
         count_finished_run = self.get_queryset().filter(athlete=run_finished.athlete,
                                                         status='finished').count()
         if count_finished_run == 10:
             Challenge.objects.create(athlete=run_finished.athlete,
-                                     full_name='Сделай 10 Забегов!')
+                                     full_name='Сделай 10 Забегов!')        
         return run_finished
 
 
-class AthleteInfoView(mixins.RetrieveModelMixin,
-                      mixins.UpdateModelMixin,
-                      generics.GenericAPIView):
+class AthleteInfoView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.select_related('athlete_info').all()
     serializer_class = AthleteInfoSerializer
+    http_method_names = ['get', 'put', 'head', 'options', 'trace']
     lookup_field = 'id'
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
-    
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)    
 
     def update(self, request, *args, **kwargs):
         response = super().update(request, *args, **kwargs)

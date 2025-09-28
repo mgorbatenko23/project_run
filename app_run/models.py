@@ -14,7 +14,8 @@ class Run(models.Model):
                                 related_name='athletes')
     comment = models.TextField()
     status = models.CharField(choices=STATUS_CHOICES, default='init')
-    created_at = models.DateTimeField(auto_now_add=True)
+    distance = models.FloatField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)    
 
     def __str__(self):
         return f'{self.athlete.id} -- {self.comment} -- {self.created_at}'
@@ -42,3 +43,6 @@ class Position(models.Model):
                             related_name='positions')
     latitude = models.DecimalField(max_digits=6, decimal_places=4)
     longitude = models.DecimalField(max_digits=7, decimal_places=4)
+
+    def __str__(self):
+        return f'latitude: {self.latitude}, longitude: {self.longitude}'
