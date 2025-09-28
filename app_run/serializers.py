@@ -58,7 +58,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
 class PositionSerializer(serializers.ModelSerializer):    
     class Meta:
         model = Position
-        fields = ['id', 'run', 'latitude', 'longitude'] # id--read_only, run--PK
+        fields = ['id', 'run', 'latitude', 'longitude']
 
     def validate_run(self, run):
         if run.status in ['init', 'finished']:
