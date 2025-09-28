@@ -151,7 +151,7 @@ class ChallengeView(generics.ListAPIView):
 
 
 class PositionViewSet(viewsets.ModelViewSet):
-    queryset = Position.objects.select_related('run').all()
+    queryset = Position.objects.all()
     serializer_class = PositionSerializer
     http_method_names = ['get', 'post', 'delete', 'head', 'options', 'trace']
     filter_backends = [DjangoFilterBackend]
