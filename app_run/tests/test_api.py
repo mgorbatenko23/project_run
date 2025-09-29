@@ -164,8 +164,8 @@ class AthleteInfoApiTestCase(APITestCase):
         self.user_1 = User.objects.create(username='user 1')
         self.user_2 = User.objects.create(username='user 2')
         self.athlete_info = AthleteInfo.objects.create(athlete=self.user_2,
-                                                        goals='цели нет, есть только путь',
-                                                        weight=70)
+                                                       goals='цели нет, есть только путь',
+                                                       weight=70)
 
     def test_not_find_user(self):
         url = reverse('athlete_info-detail', kwargs={'id': 23})
@@ -217,23 +217,39 @@ class AthleteInfoApiTestCase(APITestCase):
 class ChallengeApiTestCase(APITestCase):
     def setUp(self):
         self.user = User.objects.create(username='user')
-
+    
+    def test_create_challenge_10_run(self):
         for i in range(9):
             Run.objects.create(athlete=self.user,
                                comment=f'comment {i}',
                                status='finished')
-        self.run = Run.objects.create(athlete=self.user,
+        run = Run.objects.create(athlete=self.user,
                                comment='comment 10',
                                status='in_progress')
-    
-    def test_create_challenge(self):
-        url = reverse('run-stop', kwargs={'pk': self.run.pk})
+        url = reverse('run-stop', kwargs={'pk': run.pk})
         response = self.client.post(url)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         self.assertEqual(1, Challenge.objects.count())
         challenge = Challenge.objects.first()
         self.assertEqual(self.user, challenge.athlete)
         self.assertEqual('Сделай 10 Забегов!', challenge.full_name)
+
+    def test_create_challenge_50_km(self):
+        run = Run.objects.create(athlete=self.user,
+                                 comment='comment 10',
+                                 status='in_progress')
+        Position.objects.create(run=run,
+                                latitude=54.7216,
+                                longitude=20.5247)
+        Position.objects.create(run=run,
+                                latitude=54.6538,
+                                longitude=21.3477)
+        url = reverse('run-stop', kwargs={'pk': run.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        challenge = Challenge.objects.first()
+        self.assertEqual(self.user, challenge.athlete)
+        self.assertEqual('Пробеги 50 километров!', challenge.full_name)
 
 
 class CalculateRunDistance(APITestCase):
