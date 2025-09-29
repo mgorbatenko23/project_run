@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from app_run.models import Run, AthleteInfo, Challenge
+from app_run.models import Run, AthleteInfo, Challenge, Position
 
 
 class CompanyDetailApiTestCase(APITestCase):
@@ -234,3 +234,28 @@ class ChallengeApiTestCase(APITestCase):
         challenge = Challenge.objects.first()
         self.assertEqual(self.user, challenge.athlete)
         self.assertEqual('Сделай 10 Забегов!', challenge.full_name)
+
+
+class CalculateRunDistance(APITestCase):
+    def setUp(self):
+        user = User.objects.create(username='user')
+        self.run_status_in_progress = Run.objects.create(comment='comment',
+                                                         athlete=user,
+                                                         status='in_progress')
+        Position.objects.create(run=self.run_status_in_progress,
+                                latitude=54.7216,
+                                longitude=20.5247)
+        Position.objects.create(run=self.run_status_in_progress,
+                                latitude=54.7722,
+                                longitude=20.5470)
+        Position.objects.create(run=self.run_status_in_progress,
+                                latitude=54.9588,
+                                longitude=20.4729)
+
+    def test_calc_distance(self):
+        url = reverse('run-stop', kwargs={'pk': self.run_status_in_progress.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.run_status_in_progress.refresh_from_db()
+        self.assertEqual('finished', self.run_status_in_progress.status)
+        self.assertTrue(self.run_status_in_progress.distance > 0)
