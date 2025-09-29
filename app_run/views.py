@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -108,11 +108,17 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
     def perform_update(self, serializer):
         coordinates = [(obj.latitude, obj.longitude) for obj in self.obj.positions.all()]
         run_finished = serializer.save(status='finished', distance=utils.get_distance_in_km(coordinates))
-        count_finished_run = self.get_queryset().filter(athlete=run_finished.athlete,
-                                                        status='finished').count()
-        if count_finished_run == 10:
+        run_stats = self.get_queryset().filter(athlete=run_finished.athlete,
+                                               status='finished').aggregate(
+                                                   total_finished=Count('id'),
+                                                   total_distance=Sum('distance'))
+
+        if run_stats['total_finished'] == 10:
             Challenge.objects.create(athlete=run_finished.athlete,
-                                     full_name='Сделай 10 Забегов!')        
+                                     full_name='Сделай 10 Забегов!')
+        if run_stats['total_distance'] >= 50:
+            Challenge.objects.create(athlete=run_finished.athlete,
+                                     full_name='Пробеги 50 километров!')
         return run_finished
 
 
