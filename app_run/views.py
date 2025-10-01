@@ -12,14 +12,24 @@ from rest_framework.exceptions import ParseError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import views
+from rest_framework import parsers
+from openpyxl import load_workbook
 
-from app_run.models import Run, AthleteInfo, Challenge, Position
+from app_run.models import (
+    Run,
+    AthleteInfo,
+    Challenge,
+    Position,
+    CollectibleItem,
+)    
 from app_run.serializers import (
     RunSerializer,
     UserSerializer,
     AthleteInfoSerializer,
     ChallengeSerializer,
     PositionSerializer,
+    CollectibleItemSerializer,
 )
 from app_run import utils
 
@@ -158,3 +168,33 @@ class PositionViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'delete', 'head', 'options', 'trace']
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['run']
+
+
+class CollectibleItemView(viewsets.ReadOnlyModelViewSet):
+    queryset = CollectibleItem.objects.all()
+    serializer_class = CollectibleItemSerializer
+
+
+class FileUploadView(views.APIView):
+    parser_classes = [parsers.MultiPartParser]
+
+    def post(self, request):        
+        workbook = load_workbook(filename=request.FILES.get('file'))
+        sheet = workbook.active
+        correct_row = []
+        errors_row = []
+        headers = ['name', 'uid', 'value', 'latitude', 'longitude', 'picture']
+        for i, row in enumerate(sheet):
+            if i == 0:
+                continue
+            data = {header: cell.value for header, cell in zip(headers, row)}
+            if CollectibleItemSerializer(data=data).is_valid():
+                correct_row.append(data)
+            else:
+                errors_row.append(list(data.values()))
+
+        serializer = CollectibleItemSerializer(data=correct_row, many=True)
+        serializer.is_valid()
+        serializer.save()        
+
+        return Response(data=errors_row, status=status.HTTP_200_OK)

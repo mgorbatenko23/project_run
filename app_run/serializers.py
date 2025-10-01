@@ -1,6 +1,13 @@
 from django.contrib.auth.models import User
-from app_run.models import Run, AthleteInfo, Challenge, Position
 from rest_framework import serializers
+
+from app_run.models import(
+    Run,
+    AthleteInfo,
+    Challenge,
+    Position,
+    CollectibleItem,
+)    
 
 
 class AthleteSerializer(serializers.ModelSerializer):
@@ -73,3 +80,9 @@ class PositionSerializer(serializers.ModelSerializer):
         if -180 <= value <= 180:
             return value
         raise serializers.ValidationError('Thw longitude must be between -180 and 180')
+
+
+class CollectibleItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectibleItem
+        fields = '__all__'
