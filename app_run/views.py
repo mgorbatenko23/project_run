@@ -181,8 +181,8 @@ class PositionViewSet(viewsets.ModelViewSet):
         position = serializer.instance
         for artifact in CollectibleItem.objects.all():
             distance = utils.get_distance_to_object(
-                            (float(artifact.latitude), float(artifact.longitude)),
-                            (float(position.latitude), float(position.longitude)))
+                            (artifact.latitude, artifact.longitude),
+                            (position.latitude, position.longitude))
             if distance < 100:
                 user = position.run.athlete
                 user.items.add(artifact)
