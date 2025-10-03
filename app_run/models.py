@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Run(models.Model):
@@ -54,7 +55,10 @@ class CollectibleItem(models.Model):
                                   related_name='items')
     name = models.CharField()
     uid = models.CharField()
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    latitude = models.FloatField(validators=[MinValueValidator(-90.0),
+                                             MaxValueValidator(90.0)
+                                             ])
+    longitude = models.FloatField(validators=[MinValueValidator(-180.0),
+                                              MaxValueValidator(180.0)])
     picture = models.URLField()
     value = models.IntegerField()    
