@@ -30,6 +30,7 @@ from app_run.serializers import (
     ChallengeSerializer,
     PositionSerializer,
     CollectibleItemSerializer,
+    UserDetailSerializer,
 )
 from app_run import utils
 
@@ -59,8 +60,8 @@ class Userpagination(PageNumberPagination):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.prefetch_related('athletes')\
                         .annotate(runs_finished=Count('athletes__status',
-                                                     filter=Q(athletes__status='finished')))    
-    serializer_class = UserSerializer
+                                                     filter=Q(athletes__status='finished')))
+    # serializer_class = UserSerializer
     pagination_class = Userpagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['first_name', 'last_name']
@@ -76,6 +77,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return queryset.filter(is_staff=False)
         else:
             return queryset
+
+    def get_serializer_class(self):
+        if self.kwargs.get('pk'):
+            return UserDetailSerializer
+        else:
+            return UserSerializer
 
 
 class RunViewStart(mixins.UpdateModelMixin, generics.GenericAPIView):
@@ -163,11 +170,22 @@ class ChallengeView(generics.ListAPIView):
 
 
 class PositionViewSet(viewsets.ModelViewSet):
-    queryset = Position.objects.all()
+    queryset = Position.objects.select_related('run').all()
     serializer_class = PositionSerializer
     http_method_names = ['get', 'post', 'delete', 'head', 'options', 'trace']
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['run']
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        position = serializer.instance
+        for artifact in CollectibleItem.objects.all():
+            distance = utils.get_distance_to_object(
+                            (artifact.latitude, artifact.longitude),
+                            (position.latitude, position.longitude))
+            if distance < 100:
+                user = position.run.athlete
+                user.items.add(artifact)
 
 
 class CollectibleItemView(viewsets.ReadOnlyModelViewSet):

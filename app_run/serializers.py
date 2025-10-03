@@ -37,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_runs_finished(self, obj):
         return obj.runs_finished
-
+    
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField(read_only=True)
@@ -79,13 +79,13 @@ class PositionSerializer(serializers.ModelSerializer):
     def validate_longitude(self, value):
         if -180 <= value <= 180:
             return value
-        raise serializers.ValidationError('Thw longitude must be between -180 and 180')
+        raise serializers.ValidationError('The longitude must be between -180 and 180')
 
 
 class CollectibleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CollectibleItem
-        fields = '__all__'
+        fields = ['id', 'name', 'uid', 'latitude', 'longitude', 'picture', 'value']
 
     def validate_latitude(self, value):
         if -90 <= value <= 90:
@@ -96,3 +96,11 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
         if -180 <= value <= 180:
             return value
         raise serializers.ValidationError('Thw longitude must be between -180 and 180')
+
+
+class UserDetailSerializer(UserSerializer):
+    items = CollectibleItemSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name', 'type', 'runs_finished', 'items']

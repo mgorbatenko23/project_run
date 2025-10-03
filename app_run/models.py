@@ -49,6 +49,9 @@ class Position(models.Model):
 
 
 class CollectibleItem(models.Model):
+    user = models.ManyToManyField(User,
+                                  blank=True,                                  
+                                  related_name='items')
     name = models.CharField()
     uid = models.CharField()
     latitude = models.FloatField()
