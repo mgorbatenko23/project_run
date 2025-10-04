@@ -179,7 +179,8 @@ class PositionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         super().perform_create(serializer)
         position = serializer.instance
-        print(position)
+        CollectibleItem.objects.exclude(
+            Q(latitude__range=(-90, 90)) & Q(longitude__range=(-180, 180))).delete()
         for artifact in CollectibleItem.objects.all():
             distance = utils.get_distance_to_object(
                             (artifact.latitude, artifact.longitude),
