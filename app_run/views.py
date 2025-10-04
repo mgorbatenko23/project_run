@@ -11,9 +11,9 @@ from rest_framework import mixins
 from rest_framework.exceptions import ParseError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import views
 from rest_framework import parsers
+from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import load_workbook
 
 from app_run.models import (
@@ -61,7 +61,6 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.prefetch_related('athletes')\
                         .annotate(runs_finished=Count('athletes__status',
                                                      filter=Q(athletes__status='finished')))
-    # serializer_class = UserSerializer
     pagination_class = Userpagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['first_name', 'last_name']
