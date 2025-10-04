@@ -19,7 +19,7 @@ class Run(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)    
 
     def __str__(self):
-        return f'{self.athlete.id} -- {self.comment} -- {self.created_at}'
+        return f'{self.athlete.id}: {self.athlete.username}, STATUS {self.status}'
 
 
 class AthleteInfo(models.Model):
@@ -30,12 +30,18 @@ class AthleteInfo(models.Model):
     goals = models.TextField(default='', blank=True)
     weight = models.PositiveSmallIntegerField(blank=True, null=True)
 
+    def __str__(self):
+        return f'{self.athlete.id}: {self.athlete.username}, weight {self.weight}'
+
 
 class Challenge(models.Model):
     athlete = models.ForeignKey(User,
                                 on_delete=models.CASCADE,
                                 related_name='challenges')
     full_name = models.CharField()
+
+    def __str__(self):
+        return f'{self.athlete.id}: {self.athlete.username}, full_name {self.full_name}'
 
 
 class Position(models.Model):
@@ -51,7 +57,8 @@ class Position(models.Model):
                                                 MaxValueValidator(180)])
 
     def __str__(self):
-        return f'latitude: {self.latitude}, longitude: {self.longitude}'
+        return (f'run: {self.run.id}, {self.run.athlete.id}: {self.run.athlete.username}, '
+                f'latitude {self.latitude} longitude {self.longitude}')
 
 
 class CollectibleItem(models.Model):
@@ -67,3 +74,7 @@ class CollectibleItem(models.Model):
                                               MaxValueValidator(180.0)])
     picture = models.URLField()
     value = models.IntegerField()    
+
+    def __str__(self):
+        return (f'name {self.name}, '
+                f'latitude {self.latitude}, longitude {self.longitude}')
