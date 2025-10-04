@@ -1,10 +1,17 @@
+import json
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from app_run.models import Run, AthleteInfo, Challenge, Position
+from app_run.models import(
+    Run,
+    AthleteInfo,
+    Challenge,
+    Position,
+    CollectibleItem,    
+)    
 
 
 class CompanyDetailApiTestCase(APITestCase):
@@ -137,6 +144,16 @@ class RunStopApiTestCase(APITestCase):
                                                       athlete=user,
                                                       status='finished')
 
+        Position.objects.create(run=self.run_status_in_progress,
+                                latitude=54.7216,
+                                longitude=20.5247)
+        Position.objects.create(run=self.run_status_in_progress,
+                                latitude=54.7722,
+                                longitude=20.5470)
+        Position.objects.create(run=self.run_status_in_progress,
+                                latitude=54.9588,
+                                longitude=20.4729)
+
     def test_status_init_start(self):
         url = reverse('run-stop', kwargs={'pk': self.run_status_init.pk})
         response = self.client.post(url)
@@ -157,6 +174,15 @@ class RunStopApiTestCase(APITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
         self.run_status_finished.refresh_from_db()
         self.assertEqual('finished', self.run_status_finished.status)
+
+    def test_calc_distance(self):
+        url = reverse('run-stop', kwargs={'pk': self.run_status_in_progress.pk})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.run_status_in_progress.refresh_from_db()
+        self.assertEqual('finished', self.run_status_in_progress.status)
+        self.assertTrue(self.run_status_in_progress.distance > 0,
+                        self.run_status_in_progress.distance)
 
 
 class AthleteInfoApiTestCase(APITestCase):
@@ -252,26 +278,43 @@ class ChallengeApiTestCase(APITestCase):
         self.assertEqual('Пробеги 50 километров!', challenge.full_name)
 
 
-class CalculateRunDistance(APITestCase):
-    def setUp(self):
-        user = User.objects.create(username='user')
-        self.run_status_in_progress = Run.objects.create(comment='comment',
-                                                         athlete=user,
-                                                         status='in_progress')
-        Position.objects.create(run=self.run_status_in_progress,
-                                latitude=54.7216,
-                                longitude=20.5247)
-        Position.objects.create(run=self.run_status_in_progress,
-                                latitude=54.7722,
-                                longitude=20.5470)
-        Position.objects.create(run=self.run_status_in_progress,
-                                latitude=54.9588,
-                                longitude=20.4729)
-
-    def test_calc_distance(self):
-        url = reverse('run-stop', kwargs={'pk': self.run_status_in_progress.pk})
-        response = self.client.post(url)
+class FileUploadApiTestCase(APITestCase):
+    def test_upload_file(self):
+        path_file = settings.BASE_DIR / 'app_run' / 'tests' / 'upload_example.xlsx'
+        with open(path_file, 'rb') as f_data:
+            url = reverse('upload-file')
+            response = self.client.post(url, data={'file': f_data})
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.run_status_in_progress.refresh_from_db()
-        self.assertEqual('finished', self.run_status_in_progress.status)
-        self.assertTrue(self.run_status_in_progress.distance > 0)
+        self.assertEqual(2, CollectibleItem.objects.count())
+
+
+class PositionApiTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.run = Run.objects.create(athlete=self.user,
+                                      comment='comment 10',
+                                      status='in_progress')
+        CollectibleItem.objects.create(name='artifact 1',
+                                       latitude='20.0001',
+                                       longitude='50.0001',
+                                       picture='https://example.com/',
+                                       value=1)
+        CollectibleItem.objects.create(name='artifact 2',
+                                       latitude='21.0001',
+                                       longitude='51.0001',
+                                       picture='https://example.com/',
+                                       value=1)
+
+ 
+    def test_add_collectible_items(self):
+        url = reverse('position-list')
+        data = {'run': self.run.pk,
+                'latitude': 20.0,
+                'longitude': 50.0}
+        json_data = json.dumps(data)
+        response = self.client.post(url, data=json_data, content_type='application/json')
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.user.refresh_from_db()
+        self.assertEqual(1, self.user.items.count())
+        artifact = self.user.items.first()
+        self.assertEqual('artifact 1', artifact.name)

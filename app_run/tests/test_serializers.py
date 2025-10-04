@@ -6,6 +6,7 @@ from app_run.serializers import (
     UserSerializer,
     AthleteInfoSerializer,
     PositionSerializer,
+    CollectibleItemSerializer,
 )    
 
 from app_run.models import Run
@@ -81,3 +82,26 @@ class PositionSerializerTestCase(TestCase):
         self.assertRaises(serializers.ValidationError,
                           serializer.validate_longitude, -181)
         
+
+class CollectibleItemSerializerTestCase(TestCase):
+    def test_validate_latitude(self):
+        serializer = CollectibleItemSerializer()
+        self.assertEqual(23, serializer.validate_latitude(23))
+    
+    def test_validate_latitude_error(self):
+        serializer = CollectibleItemSerializer()
+        self.assertRaises(serializers.ValidationError,
+                          serializer.validate_latitude, 91)
+        self.assertRaises(serializers.ValidationError,
+                          serializer.validate_latitude, -91)
+    
+    def test_validate_longitude(self):
+        serializer = CollectibleItemSerializer()
+        self.assertEqual(23, serializer.validate_longitude(23))
+
+    def test_validate_longitude_error(self):
+        serializer = CollectibleItemSerializer()
+        self.assertRaises(serializers.ValidationError,
+                          serializer.validate_longitude, 181)
+        self.assertRaises(serializers.ValidationError,
+                          serializer.validate_longitude, -181)
