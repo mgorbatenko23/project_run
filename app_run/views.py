@@ -37,14 +37,15 @@ from app_run import utils
 
 @api_view()
 def detail_company(request):
+    """ Название компании, слоган, адрес """
     return Response(settings.ABOUT_COMPANY)
 
 
-class RunPagination(PageNumberPagination):
-    page_size_query_param = 'size'
-
-
 class RunViewSet(viewsets.ModelViewSet):
+    """ Забеги """
+    class RunPagination(PageNumberPagination):
+        page_size_query_param = 'size'
+
     queryset = Run.objects.select_related('athlete').all()
     serializer_class = RunSerializer
     pagination_class = RunPagination
@@ -53,11 +54,11 @@ class RunViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at']
 
 
-class Userpagination(PageNumberPagination):
-    page_size_query_param = 'size'
-
-
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """ Атлеты и тренеры """
+    class Userpagination(PageNumberPagination):
+        page_size_query_param = 'size'
+
     queryset = User.objects.prefetch_related('athletes')\
                         .annotate(runs_finished=Count('athletes__status',
                                                      filter=Q(athletes__status='finished')))
@@ -85,6 +86,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RunViewStart(mixins.UpdateModelMixin, generics.GenericAPIView):
+    """ Начало забега """
     queryset = Run.objects.all()
     serializer_class = RunSerializer
 
@@ -105,6 +107,7 @@ class RunViewStart(mixins.UpdateModelMixin, generics.GenericAPIView):
 
 
 class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
+    """ Завершение забега """
     queryset = Run.objects.select_related('athlete').prefetch_related('positions').all()
     serializer_class = RunSerializer
     
@@ -139,6 +142,7 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
 
 
 class AthleteInfoView(generics.RetrieveUpdateAPIView):
+    """ Дополнительная информация об атлете """
     queryset = User.objects.select_related('athlete_info').all()
     serializer_class = AthleteInfoSerializer
     http_method_names = ['get', 'put', 'head', 'options', 'trace']
@@ -162,6 +166,7 @@ class AthleteInfoView(generics.RetrieveUpdateAPIView):
         
 
 class ChallengeView(generics.ListAPIView):
+    """ Челенджи """
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
     filter_backends = [DjangoFilterBackend]
@@ -169,6 +174,7 @@ class ChallengeView(generics.ListAPIView):
 
 
 class PositionViewSet(viewsets.ModelViewSet):
+    """ Кооординаты атлета """
     queryset = Position.objects.select_related('run').all()
     serializer_class = PositionSerializer
     http_method_names = ['get', 'post', 'delete', 'head', 'options', 'trace']
@@ -190,11 +196,13 @@ class PositionViewSet(viewsets.ModelViewSet):
 
 
 class CollectibleItemView(viewsets.ReadOnlyModelViewSet):
+    """ Коллекция предметов(артефакты) собираемые атлетом """
     queryset = CollectibleItem.objects.all()
     serializer_class = CollectibleItemSerializer
 
 
 class FileUploadView(views.APIView):
+    """ Загрузка коллекции предметов(артефактов) из файла """
     parser_classes = [parsers.MultiPartParser]
 
     def post(self, request):        

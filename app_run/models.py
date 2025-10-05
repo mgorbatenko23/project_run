@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Run(models.Model):
+    """ Забег """
     STATUS_CHOICES = [
         ('init', 'Init'),
         ('in_progress', 'In_progress'),
@@ -23,6 +24,7 @@ class Run(models.Model):
 
 
 class AthleteInfo(models.Model):
+    """ дополнительная информация об атлете """
     athlete = models.OneToOneField(User,
                                    on_delete=models.CASCADE,
                                    related_name='athlete_info',
@@ -35,6 +37,7 @@ class AthleteInfo(models.Model):
 
 
 class Challenge(models.Model):
+    """ Челенджи """
     athlete = models.ForeignKey(User,
                                 on_delete=models.CASCADE,
                                 related_name='challenges')
@@ -45,6 +48,7 @@ class Challenge(models.Model):
 
 
 class Position(models.Model):
+    """ Координаты атлета """
     run = models.ForeignKey(Run,
                             on_delete=models.CASCADE,
                             related_name='positions')
@@ -62,6 +66,7 @@ class Position(models.Model):
 
 
 class CollectibleItem(models.Model):
+    """ Коллекция предметов(артефакты) собираемые атлетом """
     user = models.ManyToManyField(User,
                                   blank=True,                                  
                                   related_name='items')
