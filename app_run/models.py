@@ -18,9 +18,10 @@ class Run(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, default='init')
     distance = models.FloatField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)    
+    run_time_seconds = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.athlete.id}: {self.athlete.username}, STATUS {self.status}'
+        return f'run: {self.id}, {self.athlete.id}: {self.athlete.username}, STATUS {self.status}'
 
 
 class AthleteInfo(models.Model):
@@ -59,10 +60,12 @@ class Position(models.Model):
                                     decimal_places=4,
                                     validators=[MinValueValidator(-180),
                                                 MaxValueValidator(180)])
+    date_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return (f'run: {self.run.id}, {self.run.athlete.id}: {self.run.athlete.username}, '
-                f'latitude {self.latitude} longitude {self.longitude}')
+                f'latitude {self.latitude}, longitude {self.longitude}, '
+                f'date_time {self.date_time.strftime("%Y-%m-%dT%H:%M:%S.%f")}')
 
 
 class CollectibleItem(models.Model):

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum, Min, Max
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -126,7 +126,16 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
 
     def perform_update(self, serializer):
         coordinates = [(obj.latitude, obj.longitude) for obj in self.obj.positions.all()]
-        run_finished = serializer.save(status='finished', distance=utils.get_distance_in_km(coordinates))
+        run_distance = utils.get_distance_in_km(coordinates)
+
+        run_time_stats = self.obj.positions.aggregate(Min('date_time'), Max('date_time'))
+        run_time_seconds = utils.get_seconds_between_dates(
+                                run_time_stats['date_time__max'], run_time_stats['date_time__min'])
+
+        run_finished = serializer.save(status='finished',
+                                       distance=run_distance,
+                                       run_time_seconds=run_time_seconds)
+        
         run_stats = self.get_queryset().filter(athlete=run_finished.athlete,
                                                status='finished').aggregate(
                                                    total_finished=Count('id'),
@@ -138,6 +147,9 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
         if run_stats['total_distance'] >= 50:
             Challenge.objects.create(athlete=run_finished.athlete,
                                      full_name='Пробеги 50 километров!')
+
+        serializer.save(run_time_seconds=run_time_seconds)
+        
         return run_finished
 
 
