@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from django.urls import reverse
 from django.conf import settings
@@ -146,13 +147,16 @@ class RunStopApiTestCase(APITestCase):
 
         Position.objects.create(run=self.run_status_in_progress,
                                 latitude=54.7216,
-                                longitude=20.5247)
+                                longitude=20.5247,
+                                date_time=datetime(2025, 10, 6, 12, 0))
         Position.objects.create(run=self.run_status_in_progress,
                                 latitude=54.7722,
-                                longitude=20.5470)
+                                longitude=20.5470,
+                                date_time=datetime(2025, 10, 6, 12, 50))
         Position.objects.create(run=self.run_status_in_progress,
                                 latitude=54.9588,
-                                longitude=20.4729)
+                                longitude=20.4729,
+                                date_time=datetime(2025, 10, 6, 12, 15))
 
     def test_status_init_start(self):
         url = reverse('run-stop', kwargs={'pk': self.run_status_init.pk})
@@ -252,6 +256,15 @@ class ChallengeApiTestCase(APITestCase):
         run = Run.objects.create(athlete=self.user,
                                comment='comment 10',
                                status='in_progress')
+        Position.objects.create(run=run,
+                                latitude=20.0000,
+                                longitude=50.0000,
+                                date_time=datetime(2025, 10, 6, 12, 0))
+        Position.objects.create(run=run,
+                                latitude=20.0100,
+                                longitude=50.0100,
+                                date_time=datetime(2025, 10, 6, 12, 30))
+
         url = reverse('run-stop', kwargs={'pk': run.pk})
         response = self.client.post(url)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -266,10 +279,12 @@ class ChallengeApiTestCase(APITestCase):
                                  status='in_progress')
         Position.objects.create(run=run,
                                 latitude=54.7216,
-                                longitude=20.5247)
+                                longitude=20.5247,
+                                date_time=datetime(2025, 10, 6, 12, 0))
         Position.objects.create(run=run,
                                 latitude=54.6538,
-                                longitude=21.3477)
+                                longitude=21.3477,
+                                date_time=datetime(2025, 10, 6, 12, 30))
         url = reverse('run-stop', kwargs={'pk': run.pk})
         response = self.client.post(url)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -310,7 +325,8 @@ class PositionApiTestCase(APITestCase):
         url = reverse('position-list')
         data = {'run': self.run.pk,
                 'latitude': 20.0,
-                'longitude': 50.0}
+                'longitude': 50.0,
+                'date_time': '2025-10-05T21:55:00.123456'}
         json_data = json.dumps(data)
         response = self.client.post(url, data=json_data, content_type='application/json')
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
