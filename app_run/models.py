@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from app_run import utils
 
 class Run(models.Model):
     """ Забег """
@@ -19,6 +20,10 @@ class Run(models.Model):
     distance = models.FloatField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)    
     run_time_seconds = models.IntegerField(blank=True, null=True)
+
+    def get_total_distance(self):
+        coordinates = [(obj.latitude, obj.longitude) for obj in self.positions.all()]
+        return utils.get_distance_in_km(coordinates)
 
     def __str__(self):
         return f'run: {self.id}, {self.athlete.id}: {self.athlete.username}, STATUS {self.status}'
