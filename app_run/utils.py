@@ -10,5 +10,8 @@ def get_distance_to_object(coordinates_1, coordinates_2):
 
 
 def get_seconds_between_dates(date_end, date_start):
-    time_diff = date_end - date_start
-    return int(time_diff.total_seconds())
+    try:
+        time_diff = date_end - date_start
+        return int(time_diff.total_seconds())
+    except TypeError:
+        return None

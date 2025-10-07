@@ -147,7 +147,7 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
             Challenge.objects.create(athlete=run_finished.athlete,
                                      full_name='Пробеги 50 километров!')
 
-        serializer.save(run_time_seconds=run_time_seconds)
+        # serializer.save(run_time_seconds=run_time_seconds)
         
         return run_finished
 
