@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 from app_run import utils
 
+
 class Run(models.Model):
     """ Забег """
     STATUS_CHOICES = [

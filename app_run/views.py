@@ -126,8 +126,6 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
 
     def perform_update(self, serializer):
         run_distance = self.get_object().get_total_distance()
-        # coordinates = [(obj.latitude, obj.longitude) for obj in self.obj.positions.all()]
-        # run_distance = utils.get_distance_in_km(coordinates)
 
         run_time_stats = self.obj.positions.aggregate(Min('date_time'), Max('date_time'))
         run_time_seconds = utils.get_seconds_between_dates(
