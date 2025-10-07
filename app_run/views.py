@@ -125,14 +125,16 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
             return obj
 
     def perform_update(self, serializer):
-        run_distance = self.get_object().get_total_distance()
+        total_distance = self.get_object().get_total_distance()
 
         run_time_stats = self.obj.positions.aggregate(Min('date_time'), Max('date_time'))
-        run_time_seconds = utils.get_seconds_between_dates(
-                                run_time_stats['date_time__max'], run_time_stats['date_time__min'])
-
+        if run_time_stats['date_time__min'] is None or run_time_stats['date_time__max'] is None:
+            run_time_seconds = None
+        else:
+            run_time_seconds = utils.get_seconds_between_dates(run_time_stats['date_time__max'],
+                                                               run_time_stats['date_time__min'])
         run_finished = serializer.save(status='finished',
-                                       distance=run_distance,
+                                       distance=total_distance,
                                        run_time_seconds=run_time_seconds)
         
         run_stats = self.get_queryset().filter(athlete=run_finished.athlete,
@@ -146,8 +148,6 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
         if run_stats['total_distance'] >= 50:
             Challenge.objects.create(athlete=run_finished.athlete,
                                      full_name='Пробеги 50 километров!')
-
-        # serializer.save(run_time_seconds=run_time_seconds)
         
         return run_finished
 
