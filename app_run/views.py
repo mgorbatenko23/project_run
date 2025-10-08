@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, Q, Sum, Min, Max
+from django.db.models import Count, Q, Sum, Min, Max, Avg
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -121,22 +121,26 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
         elif obj.status == 'finished':
             raise ParseError('The race is already over')
         else:
-            self.obj = obj
             return obj
 
     def perform_update(self, serializer):
-        total_distance = self.get_object().get_total_distance()
+        run_object = self.get_object()
+        total_distance = run_object.get_total_distance()
 
-        run_time_stats = self.obj.positions.aggregate(Min('date_time'), Max('date_time'))
+        run_time_stats = run_object.positions.aggregate(Min('date_time'), Max('date_time'))
         if run_time_stats['date_time__min'] is None or run_time_stats['date_time__max'] is None:
             run_time_seconds = None
         else:
             run_time_seconds = utils.get_seconds_between_dates(run_time_stats['date_time__max'],
                                                                run_time_stats['date_time__min'])
+        
+        avg_speed = run_object.positions.aggregate(speed=Avg('speed'))
+
         run_finished = serializer.save(status='finished',
                                        distance=total_distance,
-                                       run_time_seconds=run_time_seconds)
-        
+                                       run_time_seconds=run_time_seconds,
+                                       speed=avg_speed['speed'])
+
         run_stats = self.get_queryset().filter(athlete=run_finished.athlete,
                                                status='finished').aggregate(
                                                    total_finished=Count('id'),
@@ -193,8 +197,27 @@ class PositionViewSet(viewsets.ModelViewSet):
     filterset_fields = ['run']
 
     def perform_create(self, serializer):
-        super().perform_create(serializer)
-        position = serializer.instance
+        last_position = Position.objects.last()
+        if last_position:
+            current_latitude = serializer.validated_data['latitude']
+            current_longitude = serializer.validated_data['longitude']
+            distance_last_position = utils.get_distance_in_km([
+                                        (last_position.latitude, last_position.longitude),
+                                        (current_latitude, current_longitude)
+                                        ])
+            distance_total = distance_last_position + last_position.distance
+
+            current_date = serializer.validated_data['date_time']
+            date_last_position = last_position.date_time
+            total_seconds = utils.get_seconds_between_dates(current_date,
+                                                            date_last_position)
+            speed_between_positions = (distance_last_position * 1000) / total_seconds
+
+            position = serializer.save(distance=distance_total,
+                                       speed=speed_between_positions)
+        else:
+            position = serializer.save()
+
         CollectibleItem.objects.exclude(
             Q(latitude__range=(-90, 90)) & Q(longitude__range=(-180, 180))).delete()
         for artifact in CollectibleItem.objects.all():

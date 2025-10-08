@@ -21,6 +21,7 @@ class Run(models.Model):
     distance = models.FloatField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)    
     run_time_seconds = models.IntegerField(blank=True, null=True)
+    speed = models.FloatField(blank=True, null=True)
 
     def get_total_distance(self):
         coordinates = [(obj.latitude, obj.longitude) for obj in self.positions.all()]
@@ -67,6 +68,8 @@ class Position(models.Model):
                                     validators=[MinValueValidator(-180),
                                                 MaxValueValidator(180)])
     date_time = models.DateTimeField(blank=True, null=True)
+    speed = models.FloatField(blank=True, null=True)
+    distance = models.FloatField(blank=True, default=0)
 
     def __str__(self):
         return (f'run: {self.run.id}, {self.run.athlete.id}: {self.run.athlete.username}, '

@@ -18,6 +18,7 @@ class AthleteSerializer(serializers.ModelSerializer):
 
 class RunSerializer(serializers.ModelSerializer):
     athlete_data = AthleteSerializer(source='athlete', read_only=True)
+    speed = serializers.SerializerMethodField()
 
     class Meta:
         model = Run
@@ -28,7 +29,16 @@ class RunSerializer(serializers.ModelSerializer):
                   'athlete',
                   'distance',
                   'run_time_seconds',
-                  'athlete_data']
+                  'athlete_data',
+                  'speed',
+                  ]
+        
+        read_only_fields = ['speed']
+
+    def get_speed(self, obj):
+        if obj.speed:
+            return round(obj.speed, 2)
+        return obj.speed
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -70,10 +80,31 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 class PositionSerializer(serializers.ModelSerializer):
     date_time = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%f')
+    speed = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
 
     class Meta:
         model = Position
-        fields = ['id', 'run', 'latitude', 'longitude', 'date_time']
+        fields = ['id',
+                  'run',
+                  'latitude',
+                  'longitude',
+                  'date_time',
+                  'speed',
+                  'distance',
+                  ]
+        
+        read_only_fields = ['speed', 'distance']
+
+    def get_speed(self, obj):
+        if obj.speed:
+            return round(obj.speed, 2)
+        return obj.speed
+    
+    def get_distance(self, obj):
+        if obj.distance:
+            return round(obj.distance, 2)
+        return obj.distance
 
     def validate_run(self, run):
         if run.status in ['init', 'finished']:
