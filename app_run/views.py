@@ -133,12 +133,13 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
         else:
             run_time_seconds = utils.get_seconds_between_dates(run_time_stats['date_time__max'],
                                                                run_time_stats['date_time__min'])
-            run_avg_speed = total_distance * 1000 / run_time_seconds
+            # run_avg_speed = total_distance * 1000 / run_time_seconds
+            run_avg_speed = run_object.positions.aggregate(Avg('speed'))
 
         run_finished = serializer.save(status='finished',
                                        distance=total_distance,
                                        run_time_seconds=run_time_seconds,
-                                       speed=run_avg_speed)
+                                       speed=run_avg_speed['speed__avg'])
 
         run_stats = self.get_queryset().filter(athlete=run_finished.athlete,
                                                status='finished').aggregate(
