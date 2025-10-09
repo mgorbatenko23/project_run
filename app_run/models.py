@@ -18,10 +18,10 @@ class Run(models.Model):
                                 related_name='athletes')
     comment = models.TextField()
     status = models.CharField(choices=STATUS_CHOICES, default='init')
-    distance = models.FloatField(blank=True, null=True)
+    distance = models.FloatField(blank=True, default=0)
     created_at = models.DateTimeField(auto_now_add=True)    
-    run_time_seconds = models.IntegerField(blank=True, null=True)
-    speed = models.FloatField(blank=True, null=True)
+    run_time_seconds = models.IntegerField(blank=True, default=0)
+    speed = models.FloatField(blank=True, default=0)
 
     def get_total_distance(self):
         coordinates = [(obj.latitude, obj.longitude) for obj in self.positions.all()]
@@ -68,7 +68,7 @@ class Position(models.Model):
                                     validators=[MinValueValidator(-180),
                                                 MaxValueValidator(180)])
     date_time = models.DateTimeField(blank=True, null=True)
-    speed = models.FloatField(blank=True, null=True)
+    speed = models.FloatField(blank=True, default=0)
     distance = models.FloatField(blank=True, default=0)
 
     def __str__(self):
