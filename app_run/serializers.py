@@ -28,9 +28,9 @@ class RunSerializer(serializers.ModelSerializer):
                   'created_at',
                   'athlete',
                   'distance',
+                  'speed',
                   'run_time_seconds',
                   'athlete_data',
-                  'speed',
                   ]
         
         read_only_fields = ['speed']

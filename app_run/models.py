@@ -74,7 +74,6 @@ class Position(models.Model):
     def __str__(self):
         return (f'run: {self.run.id}, {self.run.athlete.id}: {self.run.athlete.username}, '
                 f'latitude {self.latitude}, longitude {self.longitude}, ')
-                # f'date_time {self.date_time.strftime("%Y-%m-%dT%H:%M:%S.%f")}')
 
 
 class CollectibleItem(models.Model):

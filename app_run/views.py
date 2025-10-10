@@ -125,26 +125,27 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
 
     def perform_update(self, serializer):
         run_object = self.get_object()
-        total_distance = run_object.get_total_distance()
 
-        run_time_stats = run_object.positions.aggregate(Min('date_time'), Max('date_time'))
-        if run_time_stats['date_time__min'] is None or run_time_stats['date_time__max'] is None:
-            run_time_seconds = 0
-        else:
-            run_time_seconds = utils.get_seconds_between_dates(run_time_stats['date_time__max'],
-                                                               run_time_stats['date_time__min'])
-            # run_avg_speed = total_distance * 1000 / run_time_seconds
-            run_avg_speed = run_object.positions.aggregate(Avg('speed'))
+        total_distance = run_object.get_total_distance()
+        run_time_seconds = 0
+        run_avg_speed = 0
+
+        run_date_time = run_object.positions.aggregate(Min('date_time'), Max('date_time'))        
+        if (run_date_time['date_time__min'] is not None 
+                and run_date_time['date_time__max'] is not None):
+            run_time_seconds = utils.get_seconds_between_dates(run_date_time['date_time__max'],
+                                                               run_date_time['date_time__min'])
+            run_avg_speed = run_object.positions.aggregate(Avg('speed'))['speed__avg']
 
         run_finished = serializer.save(status='finished',
                                        distance=total_distance,
                                        run_time_seconds=run_time_seconds,
-                                       speed=run_avg_speed['speed__avg'])
+                                       speed=run_avg_speed)
 
         run_stats = self.get_queryset().filter(athlete=run_finished.athlete,
-                                               status='finished').aggregate(
-                                                   total_finished=Count('id'),
-                                                   total_distance=Sum('distance'))
+                                               status='finished') \
+                                       .aggregate(total_finished=Count('id'),
+                                                  total_distance=Sum('distance'))
 
         if run_stats['total_finished'] == 10:
             Challenge.objects.create(athlete=run_finished.athlete,
