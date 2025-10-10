@@ -130,8 +130,8 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
         run_time_seconds = 0
         run_avg_speed = 0
 
-        run_date_time = run_object.positions.aggregate(Min('date_time'), Max('date_time'))        
-        if (run_date_time['date_time__min'] is not None 
+        run_date_time = run_object.positions.aggregate(Min('date_time'), Max('date_time'))
+        if (run_date_time['date_time__min'] is not None
                 and run_date_time['date_time__max'] is not None):
             run_time_seconds = utils.get_seconds_between_dates(run_date_time['date_time__max'],
                                                                run_date_time['date_time__min'])
@@ -142,18 +142,21 @@ class RunViewStop(mixins.UpdateModelMixin, generics.GenericAPIView):
                                        run_time_seconds=run_time_seconds,
                                        speed=run_avg_speed)
 
-        run_stats = self.get_queryset().filter(athlete=run_finished.athlete,
-                                               status='finished') \
-                                       .aggregate(total_finished=Count('id'),
-                                                  total_distance=Sum('distance'))
+        run_challenges = self.get_queryset().filter(athlete=run_finished.athlete,
+                                                    status='finished') \
+                                            .aggregate(total_finished=Count('id'),
+                                                       total_distance=Sum('distance'))
 
-        if run_stats['total_finished'] == 10:
+        if run_challenges['total_finished'] == 10:
             Challenge.objects.create(athlete=run_finished.athlete,
                                      full_name='Сделай 10 Забегов!')
-        if run_stats['total_distance'] >= 50:
+        if run_challenges['total_distance'] >= 50:
             Challenge.objects.create(athlete=run_finished.athlete,
                                      full_name='Пробеги 50 километров!')
-        
+        if total_distance >= 2 and run_time_seconds <= 600:
+            Challenge.objects.create(athlete=run_finished.athlete,
+                                    full_name='2 километра за 10 минут!')
+
         return run_finished
 
 
