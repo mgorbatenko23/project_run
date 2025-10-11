@@ -1,0 +1,215 @@
+---
+# Users
+- model: auth.User
+  pk: 1
+  fields:
+    username: athlete1
+    password: password
+    is_staff: false
+- model: auth.User
+  pk: 2
+  fields:
+    username: athlete2
+    password: password
+    is_staff: false
+- model: auth.User
+  pk: 3
+  fields:
+    username: athlete3
+    password: password
+    is_staff: false
+- model: auth.User
+  pk: 4
+  fields:
+    username: coach1
+    password: password
+    is_staff: true
+- model: auth.User
+  pk: 5
+  fields:
+    username: coach2
+    password: password
+    is_staff: true
+- model: auth.User
+  pk: 6
+  fields:
+    username: admin
+    password: password
+    is_superuser: true
+- model: auth.User
+  pk: 7
+  fields:
+    username: athlete4
+    password: password
+    is_staff: false
+- model: auth.User
+  pk: 8
+  fields:
+    username: athlete5
+    password: password
+    is_staff: false
+
+# Run
+- model: app_run.Run
+  pk: 1
+  fields:
+    athlete: 1  # athlete1
+    comment: comment 1
+    status: init
+    created_at: 2025-10-10 18:00:00.000000+00:00
+- model: app_run.Run
+  pk: 2
+  fields:
+    athlete: 2  # athlete2
+    comment: comment 2
+    status: in_progress
+    created_at: 2025-10-10 18:05:00.000000+00:00
+- model: app_run.Run
+  pk: 3
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 4
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 5
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 6
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 7
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 8
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 9
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 10
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 11
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: finished
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 12
+  fields:
+    athlete: 3  # athlete3
+    comment: comment 3
+    status: in_progress
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 13
+  fields:
+    athlete: 3  # athlete4
+    comment: comment 4
+    status: in_progress
+    created_at: 2025-10-10 18:10:00.000000+00:00
+- model: app_run.Run
+  pk: 14
+  fields:
+    athlete: 5  # athlete5
+    comment: comment 5
+    status: in_progress
+    created_at: 2025-10-10 18:00:00.000000+00:00
+
+# Postion
+- model: app_run.Position
+  pk: 1
+  fields:
+    run: 2
+    latitude: 20.0000
+    longitude: 50.0000
+- model: app_run.Position
+  pk: 2
+  fields:
+    run: 2
+    latitude: 20.0040
+    longitude: 50.0040
+- model: app_run.Position
+  pk: 3
+  fields:
+    run: 13
+    latitude: 20.0000
+    longitude: 50.0000
+- model: app_run.Position
+  pk: 4
+  fields:
+    run: 13
+    latitude: 20.4000
+    longitude: 50.4000
+- model: app_run.Position
+  pk: 5
+  fields:
+    run: 13
+    latitude: 20.4000
+    longitude: 50.4000
+- model: app_run.Position
+  pk: 6
+  fields:
+    run: 14
+    latitude: 20.0000
+    longitude: 50.0000
+    date_time: 2025-10-10 18:00:00.000000+00:00
+
+# AthleteInfo
+- model: app_run.AthleteInfo
+  pk: 1  # athlete2
+  fields:
+    goals: цели нет, есть только путь
+    weight: 70
+
+# CollectibleItem
+- model: app_run.CollectibleItem
+  pk: 1
+  fields:
+    uid: artifact1
+    latitude: 20.0002
+    longitude: 50.0002
+    picture: https://example.com
+    value: 5
+- model: app_run.CollectibleItem
+  pk: 2
+  fields:
+    uid: artifact2
+    latitude: 20.1000
+    longitude: 50.1000
+    picture: https://example.com
+    value: 5
+...
