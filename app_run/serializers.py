@@ -191,7 +191,6 @@ class UserDetailAthleteSerializer(UserSerializer):
                   ]
         
     def get_coach(self, obj):
-        # pdb.set_trace()
         athlete = obj.subscribes_athlete.first()
         if athlete:
             return athlete.coach_id
@@ -207,3 +206,8 @@ class SubscribeSerializer(serializers.ModelSerializer):
         if not obj.is_staff:
             return obj
         raise serializers.ValidationError('Only users with the type athlete can subscribe')
+
+    def validate_coach(self, obj):
+        if obj.is_staff:
+            return obj
+        raise serializers.ValidationError('User must be type coach')

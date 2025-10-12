@@ -280,7 +280,7 @@ class SubscribeView(generics.CreateAPIView):
     serializer_class = SubscribeSerializer
 
     def create(self, request, *args, **kwargs):
-        get_object_or_404(User, is_staff=True, id=self.kwargs['id'])
+        # get_object_or_404(User, is_staff=True, id=self.kwargs['id'])
         response = super().create(request, *args, **kwargs)
         response.status_code = status.HTTP_200_OK
         return response
