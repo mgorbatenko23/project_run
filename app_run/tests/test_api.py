@@ -51,7 +51,7 @@ class UserApiTestCase(APITestCase):
             query_params = {'type': 'athlete'}
             response = self.client.get(url, query_params=query_params)
             self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(5, len(response.data), response.data)
+        self.assertEqual(6, len(response.data), response.data)
         for obj in response.data:
             self.assertEqual('athlete', obj['type'])
 
@@ -61,7 +61,7 @@ class UserApiTestCase(APITestCase):
             query_params = {'type': 'blablabla'}
             response = self.client.get(url, query_params=query_params)
             self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(7, len(response.data), response.data)
+        self.assertEqual(8, len(response.data), response.data)
         for obj in response.data:
             self.assertTrue(obj['type'] in ['coach', 'athlete'])
 
@@ -70,7 +70,7 @@ class UserApiTestCase(APITestCase):
             url = reverse('user-list')
             response = self.client.get(url)
             self.assertEqual(status.HTTP_200_OK, response.status_code)
-        self.assertEqual(7, len(response.data), response.data)
+        self.assertEqual(8, len(response.data), response.data)
         for obj in response.data:
             self.assertTrue(obj['type'] in ['coach', 'athlete'])
 
@@ -103,6 +103,25 @@ class RunStartApiTestCase(APITestCase):
 class RunStopApiTestCase(APITestCase):
     fixtures = ['data_db']
 
+    def setUp(self):
+        url = reverse('position-list')
+        data1 = {'run': 15,
+                 'latitude': '20.0080',
+                 'longitude': '50.0080',
+                 'date_time': '2025-10-10T18:04:00.000000'}
+        data2 = {'run': 15,
+                 'latitude': '20.0160',
+                 'longitude': '50.0160',
+                 'date_time': '2025-10-10T18:08:00.000000'}
+
+        json_data = json.dumps(data1)
+        response = self.client.post(url, data=json_data, content_type='application/json')
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)        
+
+        json_data = json.dumps(data2)
+        response = self.client.post(url, data=json_data, content_type='application/json')
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+
     def test_status_init_stop(self):
         url = reverse('run-stop', kwargs={'pk': 1})
         response = self.client.post(url)
@@ -131,6 +150,40 @@ class RunStopApiTestCase(APITestCase):
         run = Run.objects.get(pk=2)
         self.assertEqual('finished', run.status)
         self.assertEqual(0.61, round(run.distance, 2))
+
+    def test_run_total_distance(self):
+        url = reverse('run-stop', kwargs={'pk': 15})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        run = Run.objects.get(pk=15)
+        self.assertEqual(2.44, response.data['distance'])
+        self.assertEqual(2.44, run.distance)
+ 
+    def test_run_avg_speed(self):
+        url = reverse('run-stop', kwargs={'pk': 15})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        run = Run.objects.get(pk=15)
+        self.assertEqual(3.39, response.data['speed'])
+        self.assertEqual(3.39, round(run.speed, 2))
+
+    def test_run_total_seconds(self):
+        url = reverse('run-stop', kwargs={'pk': 15})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        run = Run.objects.get(pk=15)
+        self.assertEqual(480, response.data['run_time_seconds'])
+        self.assertEqual(480, run.run_time_seconds)
+
+    def test_challenge_2_km_in_10_minutes(self):
+        url = reverse('run-stop', kwargs={'pk': 15})
+        response = self.client.post(url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        self.assertTrue(Challenge.objects
+                            .filter(athlete=9,
+                                    full_name='2 километра за 10 минут!') \
+                            .exists())
 
 
 class AthleteInfoApiTestCase(APITestCase):
@@ -199,7 +252,7 @@ class ChallengeApiTestCase(APITestCase):
         response = self.client.post(url)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         challenge = Challenge.objects.get(full_name='Пробеги 50 километров!')
-        self.assertEqual(3, challenge.athlete_id)
+        self.assertEqual(7, challenge.athlete_id)
 
 
 class FileUploadApiTestCase(APITestCase):
@@ -224,7 +277,35 @@ class PositionApiTestCase(APITestCase):
         json_data = json.dumps(data)
         response = self.client.post(url, data=json_data, content_type='application/json')
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
-        user = User.objects.get(pk=5)
+        user = User.objects.get(pk=8)
         self.assertEqual(1, user.items.count())
         artifact = user.items.get(uid='artifact1')
         self.assertTrue('artifact1', artifact.uid)
+
+    def test_distance_speed_beetwen_postition(self):
+        url = reverse('position-list')
+        data1 = {'run': 15,
+                 'latitude': '20.0080',
+                 'longitude': '50.0080',
+                 'date_time': '2025-10-10T18:04:00.000000'}
+        data2 = {'run': 15,
+                 'latitude': '20.0160',
+                 'longitude': '50.0160',
+                 'date_time': '2025-10-10T18:08:00.000000'}
+
+        json_data = json.dumps(data1)
+        response = self.client.post(url, data=json_data, content_type='application/json')
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)        
+
+        json_data = json.dumps(data2)
+        response = self.client.post(url, data=json_data, content_type='application/json')
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+
+        run = Run.objects.get(pk=15)
+        
+        self.assertEqual(0, run.positions.get(latitude=20.0000).distance)
+        self.assertEqual(0, run.positions.get(latitude=20.0000).speed)
+        self.assertEqual(1.22, round(run.positions.get(latitude=20.0080).distance, 2))
+        self.assertEqual(5.08, round(run.positions.get(latitude=20.0080).speed, 2))
+        self.assertEqual(2.44, round(run.positions.get(latitude=20.0160).distance, 2))
+        self.assertEqual(5.08, round(run.positions.get(latitude=20.0160).speed, 2))

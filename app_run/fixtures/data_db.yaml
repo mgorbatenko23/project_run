@@ -48,6 +48,12 @@
     username: athlete5
     password: password
     is_staff: false
+- model: auth.User
+  pk: 9
+  fields:
+    username: athlete6
+    password: password
+    is_staff: false
 
 # Run
 - model: app_run.Run
@@ -137,15 +143,22 @@
 - model: app_run.Run
   pk: 13
   fields:
-    athlete: 3  # athlete4
+    athlete: 7  # athlete4
     comment: comment 4
     status: in_progress
     created_at: 2025-10-10 18:10:00.000000+00:00
 - model: app_run.Run
   pk: 14
   fields:
-    athlete: 5  # athlete5
+    athlete: 8  # athlete5
     comment: comment 5
+    status: in_progress
+    created_at: 2025-10-10 18:00:00.000000+00:00
+- model: app_run.Run
+  pk: 15
+  fields:
+    athlete: 9  # athlete6
+    comment: comment 6
     status: in_progress
     created_at: 2025-10-10 18:00:00.000000+00:00
 
@@ -184,6 +197,13 @@
   pk: 6
   fields:
     run: 14
+    latitude: 20.0000
+    longitude: 50.0000
+    date_time: 2025-10-10 18:00:00.000000+00:00
+- model: app_run.Position
+  pk: 7
+  fields:
+    run: 15
     latitude: 20.0000
     longitude: 50.0000
     date_time: 2025-10-10 18:00:00.000000+00:00
