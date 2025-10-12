@@ -1,3 +1,4 @@
+import pdb
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -7,6 +8,7 @@ from app_run.models import(
     Challenge,
     Position,
     CollectibleItem,
+    Subscribe,
 )    
 
 
@@ -135,7 +137,7 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
     def validate_longitude(self, value):
         if -180 <= value <= 180:
             return value
-        raise serializers.ValidationError('Thw longitude must be between -180 and 180')
+        raise serializers.ValidationError('The longitude must be between -180 and 180')
 
 
 class UserDetailSerializer(UserSerializer):
@@ -143,4 +145,65 @@ class UserDetailSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name', 'type', 'runs_finished', 'items']
+        fields = ['id',
+                  'date_joined',
+                  'username',
+                  'last_name',
+                  'first_name',
+                  'type',
+                  'runs_finished',                   
+                  'items',
+                  ]
+
+class UserDetailCoachSerializer(UserSerializer):
+    athletes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id',
+                  'date_joined',
+                  'username',
+                  'last_name',
+                  'first_name',
+                  'type',
+                  'athletes',
+                  ]
+    
+    def get_athletes(self, obj):
+        qs = obj.subscribes_coach.all()
+        return [_obj.athlete_id for _obj in qs]
+
+class UserDetailAthleteSerializer(UserSerializer):
+    items = CollectibleItemSerializer(read_only=True, many=True)
+    coach = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id',
+                  'date_joined',
+                  'username',
+                  'last_name',
+                  'first_name',
+                  'type',
+                  'runs_finished',                   
+                  'items',
+                  'coach',
+                  ]
+        
+    def get_coach(self, obj):
+        # pdb.set_trace()
+        athlete = obj.subscribes_athlete.first()
+        if athlete:
+            return athlete.coach_id
+
+
+        
+class SubscribeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscribe
+        fields = ['id', 'athlete', 'coach']
+
+    def validate_athlete(self, obj):
+        if not obj.is_staff:
+            return obj
+        raise serializers.ValidationError('Only users with the type athlete can subscribe')

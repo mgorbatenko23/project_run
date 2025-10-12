@@ -1,3 +1,4 @@
+import pdb
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum, Min, Max, Avg
@@ -22,6 +23,7 @@ from app_run.models import (
     Challenge,
     Position,
     CollectibleItem,
+    Subscribe,
 )    
 from app_run.serializers import (
     RunSerializer,
@@ -31,6 +33,9 @@ from app_run.serializers import (
     PositionSerializer,
     CollectibleItemSerializer,
     UserDetailSerializer,
+    UserDetailCoachSerializer,
+    UserDetailAthleteSerializer,
+    SubscribeSerializer,    
 )
 from app_run import utils
 
@@ -80,7 +85,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if self.kwargs.get('pk'):
-            return UserDetailSerializer
+            if self.get_object().is_staff:
+                return UserDetailCoachSerializer
+            else:
+                return UserDetailAthleteSerializer
         else:
             return UserSerializer
 
@@ -265,3 +273,19 @@ class FileUploadView(views.APIView):
         serializer.save()        
 
         return Response(data=errors_row, status=status.HTTP_200_OK)
+
+
+class SubscribeView(generics.CreateAPIView):
+    queryset = Subscribe.objects.all()
+    serializer_class = SubscribeSerializer
+
+    def create(self, request, *args, **kwargs):
+        get_object_or_404(User, is_staff=True, id=self.kwargs['id'])
+        response = super().create(request, *args, **kwargs)
+        response.status_code = status.HTTP_200_OK
+        return response
+
+    def get_serializer(self, *args, **kwargs):
+        serializer = super().get_serializer(*args, **kwargs)
+        serializer.initial_data['coach'] = self.kwargs['id']
+        return serializer

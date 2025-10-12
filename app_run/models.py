@@ -94,3 +94,17 @@ class CollectibleItem(models.Model):
     def __str__(self):
         return (f'name {self.name}, '
                 f'latitude {self.latitude}, longitude {self.longitude}')
+
+
+class Subscribe(models.Model):
+    athlete = models.ForeignKey(User,
+                                on_delete=models.CASCADE,
+                                related_name='subscribes_athlete')
+    coach = models.ForeignKey(User,
+                              on_delete=models.CASCADE,
+                              related_name='subscribes_coach')
+    class Meta:
+        unique_together = ['athlete', 'coach']
+
+    def __str__(self):
+        return f'athlte_id {self.athlete_id}, coach {self.coach_id}'

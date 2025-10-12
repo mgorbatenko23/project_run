@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/athlete_info/<int:id>/', views.AthleteInfoView.as_view(), name='athlete_info-detail'),
     path('api/challenges/', views.ChallengeView.as_view(), name='challenge-list'),
     path('api/upload_file/', views.FileUploadView.as_view(), name='upload-file'),
+    path('api/subscribe_to_coach/<int:id>/', views.SubscribeView.as_view(), name='subscribe-create'),
 ]
