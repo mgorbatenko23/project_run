@@ -52,7 +52,8 @@ class Challenge(models.Model):
     full_name = models.CharField()
 
     def __str__(self):
-        return f'{self.athlete.id}: {self.athlete.username}, full_name {self.full_name}'
+        # return f'{self.athlete.id}: {self.athlete.username}, full_name {self.full_name}'
+        return f'{self.athlete_id}: full_name {self.full_name}'
 
 
 class Position(models.Model):
@@ -97,6 +98,7 @@ class CollectibleItem(models.Model):
 
 
 class Subscribe(models.Model):
+    """ Подписки атлетов на тренера(ов) """
     athlete = models.ForeignKey(User,
                                 on_delete=models.CASCADE,
                                 related_name='subscribes_athlete')

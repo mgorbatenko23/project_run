@@ -1,4 +1,5 @@
 import pdb
+import collections
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum, Min, Max, Avg
@@ -289,3 +290,30 @@ class SubscribeView(generics.CreateAPIView):
         serializer = super().get_serializer(*args, **kwargs)
         serializer.initial_data['coach'] = self.kwargs['id']
         return serializer
+
+
+class ChallengeSummaryView(views.APIView):
+    def get(self, request):
+        queryset = Challenge.objects \
+                            .select_related('athlete') \
+                            .filter(athlete__is_staff=False) \
+                            .order_by('full_name') \
+                            .all()
+        
+        record = collections.defaultdict(list)
+        results = []
+        qs_list = list(queryset)
+        first_challenge = qs_list[0].full_name
+        for challenge in qs_list:
+            if first_challenge != challenge.full_name:
+                results.append(dict(record))
+                first_challenge = challenge.full_name
+                record = collections.defaultdict(list)
+            record['name_to_display'] = challenge.full_name
+            record['athletes'].append({'id': challenge.athlete_id,
+                                  'full_name': f'{challenge.athlete.first_name} {challenge.athlete.last_name}',
+                                  'username': challenge.athlete.username})
+        else:
+            results.append(dict(record))
+
+        return Response(results)
