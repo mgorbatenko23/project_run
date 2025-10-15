@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Q, Sum, Min, Max, Avg
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
@@ -36,7 +37,8 @@ from app_run.serializers import (
     UserDetailSerializer,
     UserDetailCoachSerializer,
     UserDetailAthleteSerializer,
-    SubscribeSerializer,    
+    SubscribeSerializer,
+    RateCoachSerializer,
 )
 from app_run import utils
 
@@ -83,6 +85,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return queryset.filter(is_staff=False)
         else:
             return queryset
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        qs = User.objects.annotate(avg_raiting=Avg('subscribes_coach__raiting'))
+        context['avg_raitings'] = {obj.id: obj.avg_raiting for obj in qs}
+        return context
 
     def get_serializer_class(self):
         if self.kwargs.get('pk'):
@@ -317,3 +325,21 @@ class ChallengeSummaryView(views.APIView):
             results.append(dict(record))
 
         return Response(results)
+
+
+class RateCoachView(views.APIView):
+    def post(self, request, *args, **kwargs):
+        get_object_or_404(User, id=self.kwargs['coach_id'])
+        data = self.request.data | self.kwargs
+        serializator = RateCoachSerializer(data=data)
+        serializator.is_valid(raise_exception=True)
+
+        try:
+            object = Subscribe.objects.get(athlete=serializator.validated_data['athlete'],
+                                           coach=serializator.validated_data['coach_id'])
+            object.raiting = serializator.validated_data.get('raiting', object.raiting)
+            object.save()
+        except ObjectDoesNotExist:
+            raise ParseError('Athlete not subsription on trainer')
+
+        return Response(status.HTTP_200_OK)

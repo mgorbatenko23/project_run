@@ -46,16 +46,28 @@ class RunSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
     runs_finished = serializers.SerializerMethodField(read_only=True)
+    raiting = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'date_joined', 'username', 'last_name', 'first_name', 'type', 'runs_finished']
+        fields = ['id',
+                  'date_joined',
+                  'username',
+                  'last_name',
+                  'first_name',
+                  'type',
+                  'runs_finished',
+                  'raiting',
+                  ]
 
     def get_type(self, obj):
         return 'coach' if obj.is_staff else 'athlete'
 
     def get_runs_finished(self, obj):
         return obj.runs_finished
+
+    def get_raiting(self, obj):
+        return self.context['avg_raitings'][obj.id]
     
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
@@ -153,7 +165,9 @@ class UserDetailSerializer(UserSerializer):
                   'type',
                   'runs_finished',                   
                   'items',
+                  'raiting',
                   ]
+    
 
 class UserDetailCoachSerializer(UserSerializer):
     athletes = serializers.SerializerMethodField()
@@ -167,6 +181,7 @@ class UserDetailCoachSerializer(UserSerializer):
                   'first_name',
                   'type',
                   'athletes',
+                  'raiting',
                   ]
     
     def get_athletes(self, obj):
@@ -211,3 +226,11 @@ class SubscribeSerializer(serializers.ModelSerializer):
         if obj.is_staff:
             return obj
         raise serializers.ValidationError('User must be type coach')
+
+
+class RateCoachSerializer(serializers.Serializer):
+    athlete = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(is_staff=False),
+                                                 required=True)
+    coach_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(is_staff=True),
+                                               required=True)
+    raiting = serializers.IntegerField(max_value=5, min_value=1, required=True)
