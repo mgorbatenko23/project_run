@@ -46,7 +46,7 @@ class RunSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
     runs_finished = serializers.SerializerMethodField(read_only=True)
-    raiting = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -57,7 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
                   'first_name',
                   'type',
                   'runs_finished',
-                  'raiting',
+                  'rating',
                   ]
 
     def get_type(self, obj):
@@ -66,8 +66,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_runs_finished(self, obj):
         return obj.runs_finished
 
-    def get_raiting(self, obj):
-        return self.context['avg_raitings'][obj.id]
+    def get_rating(self, obj):
+        return self.context['avg_ratings'][obj.id]
     
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
@@ -165,7 +165,7 @@ class UserDetailSerializer(UserSerializer):
                   'type',
                   'runs_finished',                   
                   'items',
-                  'raiting',
+                  'rating',
                   ]
     
 
@@ -181,7 +181,7 @@ class UserDetailCoachSerializer(UserSerializer):
                   'first_name',
                   'type',
                   'athletes',
-                  'raiting',
+                  'rating',
                   ]
     
     def get_athletes(self, obj):
@@ -233,4 +233,4 @@ class RateCoachSerializer(serializers.Serializer):
                                                  required=True)
     coach_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(is_staff=True),
                                                required=True)
-    raiting = serializers.IntegerField(max_value=5, min_value=1, required=True)
+    rating = serializers.IntegerField(max_value=5, min_value=1, required=True)

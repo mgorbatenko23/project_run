@@ -105,12 +105,12 @@ class Subscribe(models.Model):
     coach = models.ForeignKey(User,
                               on_delete=models.CASCADE,
                               related_name='subscribes_coach')
-    raiting = models.IntegerField(blank=True,
-                                  null=True,
-                                  validators=[MinValueValidator(1),
-                                              MaxValueValidator(5)])
+    rating = models.IntegerField(blank=True,
+                                 null=True,
+                                 validators=[MinValueValidator(1),
+                                             MaxValueValidator(5)])
     class Meta:
         unique_together = ['athlete', 'coach']
 
     def __str__(self):
-        return f'athlte {self.athlete_id}, coach {self.coach_id}, raiting {self.raiting}'
+        return f'athlte {self.athlete_id}, coach {self.coach_id}, rating {self.rating}'

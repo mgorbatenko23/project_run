@@ -88,8 +88,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        qs = User.objects.annotate(avg_raiting=Avg('subscribes_coach__raiting'))
-        context['avg_raitings'] = {obj.id: obj.avg_raiting for obj in qs}
+        qs = User.objects.annotate(avg_rating=Avg('subscribes_coach__rating'))
+        context['avg_ratings'] = {obj.id: obj.avg_rating for obj in qs}
         return context
 
     def get_serializer_class(self):
@@ -337,7 +337,7 @@ class RateCoachView(views.APIView):
         try:
             object = Subscribe.objects.get(athlete=serializator.validated_data['athlete'],
                                            coach=serializator.validated_data['coach_id'])
-            object.raiting = serializator.validated_data.get('raiting', object.raiting)
+            object.rating = serializator.validated_data.get('rating', object.rating)
             object.save()
         except ObjectDoesNotExist:
             raise ParseError('Athlete not subsription on trainer')
