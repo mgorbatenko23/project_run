@@ -1,8 +1,7 @@
-import pdb
 import collections
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, Q, Sum, Min, Max, Avg
+from django.db.models import Count, Q, Sum, Min, Max, Avg, Prefetch
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import api_view
@@ -39,6 +38,7 @@ from app_run.serializers import (
     UserDetailAthleteSerializer,
     SubscribeSerializer,
     RateCoachSerializer,
+    AnalyticsForCoachSerializer,
 )
 from app_run import utils
 
@@ -343,3 +343,81 @@ class RateCoachView(views.APIView):
             raise ParseError('Athlete not subsription on trainer')
 
         return Response(status.HTTP_200_OK)
+
+
+class AnalyticsForCoachView(views.APIView):
+    def get(self, request, *args, **kwargs):
+        get_object_or_404(User, id=self.kwargs['coach_id'])
+
+        serializer = AnalyticsForCoachSerializer(data={'coach_id': self.kwargs['coach_id']})
+        serializer.is_valid(raise_exception=True)
+
+        coach = serializer.validated_data['coach_id']
+        
+
+        # import pdb; pdb.set_trace()
+        # Subscribe.objects.select_related('coach').filter(coach_id=2)
+        # Subscribe.objects.select_related('coach').filter(coach_id=2).prefetch_related('athlete__athletes').aggregate(Max('athlete__athletes__distance'))
+        # User.objects.prefetch_related('athletes').annotate(distance_max=max('athlete__distance'))
+        # qs_users = User.objects.prefetch_related('subscribes_athlete').filter(subscribes_athlete__coach=trainer)
+        # qs_users.prefetch_related('athlete').annotate(distance_max=Max('athletes__distance')).aggregate(Max('distance_max'))
+        # qs_users.prefetch_related('athletes').annotate(distance_max=Max('athletes__distance')).order_by('-distance_max').first()
+
+        althlete_max_distance = User.objects \
+                                    .filter(subscribes_athlete__coach=coach,
+                                            athletes__status='finished') \
+                                    .annotate(distance_max=Max('athletes__distance')) \
+                                    .order_by('-distance_max') \
+                                    .first()
+
+        althlete_max_sum_distance = User.objects \
+                                        .filter(subscribes_athlete__coach=coach,
+                                                athletes__status='finished') \
+                                        .annotate(distance_sum=Sum('athletes__distance')) \
+                                        .order_by('-distance_sum') \
+                                        .first()
+
+        althlete_max_avg_speed = User.objects \
+                                        .filter(subscribes_athlete__coach=coach,
+                                                athletes__status='finished') \
+                                        .annotate(distance_avg=Avg('athletes__speed')) \
+                                        .order_by('-distance_avg') \
+                                        .first()
+
+
+
+        # qs_athletes = User.objects.prefetch_related('subscribes_athlete').filter(subscribes_athlete__coach=coach)
+
+        # althlete_max_distance = qs_athletes.prefetch_related('athletes') \
+        #                                     .annotate(distance_max=Max('athletes__distance')) \
+        #                                     .order_by('-distance_max') \
+        #                                     .first()
+
+        # althlete_max_distance = qs_athletes.prefetch_related(
+        #                                     Prefetch('athletes', queryset=Run.objects.filter(status='finished'))) \
+        #                                     .annotate(distance_max=Max('athletes__distance')) \
+        #                                     .order_by('-distance_max') \
+        #                                     .first()
+
+
+        # athlete_max_sum_distance = qs_athletes.prefetch_related('athletes') \
+        #                                       .annotate(distance_sum=Sum('athletes__distance')) \
+        #                                       .order_by('-distance_sum') \
+        #                                       .first()
+        # athlete_max_avg_speed = qs_athletes.prefetch_related('athletes') \
+        #                                       .annotate(speed_avg_max=Avg('athletes__speed')) \
+        #                                       .order_by('-speed_avg_max') \
+        #                                       .first()
+
+
+
+        data = {
+            'longest_run_user':  althlete_max_distance.id if althlete_max_distance else None,
+            'longest_run_value': althlete_max_distance.distance_max if althlete_max_distance else None,
+            'total_run_user': althlete_max_sum_distance.id if althlete_max_sum_distance else None,
+            'total_run_value': althlete_max_sum_distance.distance_sum if althlete_max_sum_distance else None,
+            'speed_avg_user': althlete_max_avg_speed.id if althlete_max_avg_speed else None,
+            'speed_avg_value': althlete_max_avg_speed.distance_avg if althlete_max_avg_speed else None 
+        }
+
+        return Response(data)

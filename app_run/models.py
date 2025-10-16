@@ -113,4 +113,5 @@ class Subscribe(models.Model):
         unique_together = ['athlete', 'coach']
 
     def __str__(self):
-        return f'athlte {self.athlete_id}, coach {self.coach_id}, rating {self.rating}'
+        return (f'{self.athlete_id}: {self.athlete.username}, '
+                f'{self.coach_id}: {self.coach.username}, rating {self.rating}')

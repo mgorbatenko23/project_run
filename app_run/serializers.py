@@ -1,4 +1,3 @@
-import pdb
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -234,3 +233,8 @@ class RateCoachSerializer(serializers.Serializer):
     coach_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(is_staff=True),
                                                required=True)
     rating = serializers.IntegerField(max_value=5, min_value=1, required=True)
+
+
+class AnalyticsForCoachSerializer(serializers.Serializer):
+    coach_id = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(is_staff=True),
+                                                  required=True)

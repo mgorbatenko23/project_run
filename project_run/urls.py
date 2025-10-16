@@ -26,4 +26,5 @@ urlpatterns = [
     path('api/subscribe_to_coach/<int:id>/', views.SubscribeView.as_view(), name='subscribe-create'),
     path('api/challenges_summary/', views.ChallengeSummaryView.as_view(), name='challenge-summary'),
     path('api/rate_coach/<int:coach_id>/', views.RateCoachView.as_view(), name='rate-coach'),
+    path('api/analytics_for_coach/<int:coach_id>/', views.AnalyticsForCoachView.as_view(), name='analytics-for-coach'),
 ]
