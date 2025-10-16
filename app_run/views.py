@@ -1,7 +1,7 @@
 import collections
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Count, Q, Sum, Min, Max, Avg, Prefetch
+from django.db.models import Count, Q, Sum, Min, Max, Avg
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import api_view
@@ -33,7 +33,6 @@ from app_run.serializers import (
     ChallengeSerializer,
     PositionSerializer,
     CollectibleItemSerializer,
-    UserDetailSerializer,
     UserDetailCoachSerializer,
     UserDetailAthleteSerializer,
     SubscribeSerializer,
@@ -67,7 +66,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     class Userpagination(PageNumberPagination):
         page_size_query_param = 'size'
 
-    queryset = User.objects.prefetch_related('athletes')\
+    queryset = User.objects.prefetch_related('athletes') \
                         .annotate(runs_finished=Count('athletes__status',
                                                      filter=Q(athletes__status='finished')))
     pagination_class = Userpagination
@@ -199,7 +198,7 @@ class AthleteInfoView(generics.RetrieveUpdateAPIView):
             return self.user.athlete_info
         else:
             return AthleteInfo.objects.create(athlete=self.user)
-        
+
 
 class ChallengeView(generics.ListAPIView):
     """ Челенджи """
@@ -262,7 +261,7 @@ class FileUploadView(views.APIView):
     """ Загрузка коллекции предметов(артефактов) из файла """
     parser_classes = [parsers.MultiPartParser]
 
-    def post(self, request):        
+    def post(self, request):
         workbook = load_workbook(filename=request.FILES.get('file'))
         sheet = workbook.active
         correct_row = []
@@ -279,12 +278,13 @@ class FileUploadView(views.APIView):
 
         serializer = CollectibleItemSerializer(data=correct_row, many=True)
         serializer.is_valid()
-        serializer.save()        
+        serializer.save()
 
         return Response(data=errors_row, status=status.HTTP_200_OK)
 
 
 class SubscribeView(generics.CreateAPIView):
+    """ Подписка на тренеров """
     queryset = Subscribe.objects.all()
     serializer_class = SubscribeSerializer
 
@@ -301,13 +301,14 @@ class SubscribeView(generics.CreateAPIView):
 
 
 class ChallengeSummaryView(views.APIView):
+    """ Итоговая таблица челенджей """
     def get(self, request):
         queryset = Challenge.objects \
                             .select_related('athlete') \
                             .filter(athlete__is_staff=False) \
                             .order_by('full_name') \
                             .all()
-        
+
         record = collections.defaultdict(list)
         results = []
         qs_list = list(queryset)
@@ -328,6 +329,7 @@ class ChallengeSummaryView(views.APIView):
 
 
 class RateCoachView(views.APIView):
+    """ Рейтенг тренера """
     def post(self, request, *args, **kwargs):
         get_object_or_404(User, id=self.kwargs['coach_id'])
         data = self.request.data | self.kwargs
@@ -346,6 +348,7 @@ class RateCoachView(views.APIView):
 
 
 class AnalyticsForCoachView(views.APIView):
+    """ Аналитика для тренера """
     def get(self, request, *args, **kwargs):
         get_object_or_404(User, id=self.kwargs['coach_id'])
 

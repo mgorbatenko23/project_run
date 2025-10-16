@@ -28,7 +28,7 @@ class Run(models.Model):
         return utils.get_distance_in_km(coordinates)
 
     def __str__(self):
-        return f'run: {self.id}, {self.athlete.id}: {self.athlete.username}, STATUS {self.status}'
+        return f'run: {self.id}, {self.athlete_id}: {self.athlete.username}, STATUS {self.status}'
 
 
 class AthleteInfo(models.Model):
@@ -36,12 +36,12 @@ class AthleteInfo(models.Model):
     athlete = models.OneToOneField(User,
                                    on_delete=models.CASCADE,
                                    related_name='athlete_info',
-                                   primary_key=True)                                   
+                                   primary_key=True)
     goals = models.TextField(default='', blank=True)
     weight = models.PositiveSmallIntegerField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.athlete.id}: {self.athlete.username}, weight {self.weight}'
+        return f'{self.athlete_id}: {self.athlete.username}, weight {self.weight}'
 
 
 class Challenge(models.Model):
@@ -52,8 +52,7 @@ class Challenge(models.Model):
     full_name = models.CharField()
 
     def __str__(self):
-        # return f'{self.athlete.id}: {self.athlete.username}, full_name {self.full_name}'
-        return f'{self.athlete_id}: full_name {self.full_name}'
+        return f'{self.athlete_id}: {self.athlete.username}, full_name {self.full_name}'
 
 
 class Position(models.Model):
@@ -73,14 +72,14 @@ class Position(models.Model):
     distance = models.FloatField(blank=True, default=0)
 
     def __str__(self):
-        return (f'run: {self.run.id}, {self.run.athlete.id}: {self.run.athlete.username}, '
+        return (f'run: {self.run_id}, {self.run.athlete.id}: {self.run.athlete.username}, '
                 f'latitude {self.latitude}, longitude {self.longitude}, ')
 
 
 class CollectibleItem(models.Model):
     """ Коллекция предметов(артефакты) собираемые атлетом """
     user = models.ManyToManyField(User,
-                                  blank=True,                                  
+                                  blank=True,
                                   related_name='items')
     name = models.CharField()
     uid = models.CharField()
@@ -90,7 +89,7 @@ class CollectibleItem(models.Model):
     longitude = models.FloatField(validators=[MinValueValidator(-180.0),
                                               MaxValueValidator(180.0)])
     picture = models.URLField()
-    value = models.IntegerField()    
+    value = models.IntegerField()
 
     def __str__(self):
         return (f'name {self.name}, '

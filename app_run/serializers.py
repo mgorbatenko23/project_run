@@ -33,7 +33,7 @@ class RunSerializer(serializers.ModelSerializer):
                   'run_time_seconds',
                   'athlete_data',
                   ]
-        
+
         read_only_fields = ['speed']
 
     def get_speed(self, obj):
@@ -67,7 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         return self.context['avg_ratings'][obj.id]
-    
+
 
 class AthleteInfoSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField(read_only=True)
@@ -76,9 +76,9 @@ class AthleteInfoSerializer(serializers.ModelSerializer):
         model = AthleteInfo
         fields = ['goals', 'weight', 'user_id']
 
-    def get_user_id(self, obj):        
+    def get_user_id(self, obj):
         return obj.pk
-    
+
     def validate_weight(self, value):
         if 0 < value < 900:
             return value
@@ -106,14 +106,14 @@ class PositionSerializer(serializers.ModelSerializer):
                   'speed',
                   'distance',
                   ]
-        
+
         read_only_fields = ['speed', 'distance']
 
     def get_speed(self, obj):
         if obj.speed:
             return round(obj.speed, 2)
         return obj.speed
-    
+
     def get_distance(self, obj):
         if obj.distance:
             return round(obj.distance, 2)
@@ -123,12 +123,12 @@ class PositionSerializer(serializers.ModelSerializer):
         if run.status in ['init', 'finished']:
             raise serializers.ValidationError('Run must be status in_progress')
         return run
-        
+
     def validate_latitude(self, value):
         if -90 <= value <= 90:
             return value
         raise serializers.ValidationError('The latitude must be between -90 and 90')
-    
+
     def validate_longitude(self, value):
         if -180 <= value <= 180:
             return value
@@ -144,7 +144,7 @@ class CollectibleItemSerializer(serializers.ModelSerializer):
         if -90 <= value <= 90:
             return value
         raise serializers.ValidationError('The latitude must be between -90 and 90')
-    
+
     def validate_longitude(self, value):
         if -180 <= value <= 180:
             return value
@@ -166,7 +166,7 @@ class UserDetailSerializer(UserSerializer):
                   'items',
                   'rating',
                   ]
-    
+
 
 class UserDetailCoachSerializer(UserSerializer):
     athletes = serializers.SerializerMethodField()
@@ -182,10 +182,11 @@ class UserDetailCoachSerializer(UserSerializer):
                   'athletes',
                   'rating',
                   ]
-    
+
     def get_athletes(self, obj):
         qs = obj.subscribes_coach.all()
         return [_obj.athlete_id for _obj in qs]
+
 
 class UserDetailAthleteSerializer(UserSerializer):
     items = CollectibleItemSerializer(read_only=True, many=True)
@@ -199,16 +200,15 @@ class UserDetailAthleteSerializer(UserSerializer):
                   'last_name',
                   'first_name',
                   'type',
-                  'runs_finished',                   
+                  'runs_finished',
                   'items',
                   'coach',
                   ]
-        
+
     def get_coach(self, obj):
         athlete = obj.subscribes_athlete.first()
         if athlete:
             return athlete.coach_id
-
 
         
 class SubscribeSerializer(serializers.ModelSerializer):
